@@ -154,4 +154,4 @@ Your Term Project is an essential part of the course. Please review the instruct
 - Plan your work and stay on schedule.
 - Test your project regularly.
 
-Best of luck! 🚀
+**Best of luck!** 🚀

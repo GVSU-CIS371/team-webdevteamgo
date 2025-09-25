@@ -27,7 +27,7 @@ async function onEnd(id: string) {
 
 <template>
   <div class="courses">
-    <h2>AttendNow — Courses</h2>
+    <h2 style="color: black; top: 0">Courses</h2>
 
     <div v-for="c in courses" :key="c.id" class="course">
       <h3>{{ c.name }} ({{ c.code }}) — {{ c.semester }}</h3>
