@@ -1,49 +1,24 @@
 <template>
   <div class="app-container">
-    <header class="app-header">
-      <div class="logo-box">
-        <img :src="logo" alt="AttendNow Logo" class="logo" />
-      </div>
-    </header>
-
-    <CourseList />
+    <NavBar @open-auth="onOpenAuth" />
+    <RouterView />
+    <AuthModal v-model:show="showAuth" :mode="authMode" />
   </div>
+  
 </template>
 
 <script setup lang="ts">
-import CourseList from "./components/CourseList.vue";
-import logo from "./assets/logo.png";
+import { ref } from 'vue'
+import { RouterView } from "vue-router";
+import NavBar from "./components/NavBar.vue";
+import AuthModal from "./components/AuthModal.vue";
+
+type Mode = 'signin' | 'signup'
+const showAuth = ref(false)
+const authMode = ref<Mode>('signin')
+function onOpenAuth(mode: Mode) { authMode.value = mode; showAuth.value = true }
 </script>
 
 <style scoped>
-.app-container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.app-header {
-  width: 100%;
-  padding: 1rem;
-  display: flex;
-  justify-content: center;
-  font-size: 1.5rem;
-}
-
-.app-header h1 {
-  margin: 0;
-  font-size: 2.5rem;
-  color: #222;
-}
-
-.logo-box {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
-}
-
-.logo {
-  width: 200px;
-  height: auto;
-}
+.app-container { min-height: 100vh; display:flex; flex-direction:column; }
 </style>

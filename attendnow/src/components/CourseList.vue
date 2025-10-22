@@ -27,15 +27,13 @@ async function onEnd(id: string) {
 
 <template>
   <div class="courses">
-    <h2 style="color: black; top: 0">Courses</h2>
-
     <div v-for="c in courses" :key="c.id" class="course">
       <h3>{{ c.name }} ({{ c.code }}) — {{ c.semester }}</h3>
       <p>Students: {{ c.students.length }}</p>
 
       <div v-if="c.activeCheckIn" class="active">
         <p><strong>✅ Active Check-In</strong></p>
-        <p>Passcode: <code>{{ c.activeCheckIn.passcode }}</code></p>
+        <p>Passcode: <code class="pswd">{{ c.activeCheckIn.passcode }}</code></p>
         <p>Ends: {{ c.activeCheckIn.expiresAt.toLocaleTimeString() }}</p>
         <button @click="onEnd(c.id)" class="danger">End check-in</button>
       </div>
@@ -51,6 +49,7 @@ async function onEnd(id: string) {
 <style scoped>
 .courses {
   max-width: 700px;
+  width: 40%;
   margin: 2rem auto;
   padding: 1rem;
   font-family: sans-serif;
@@ -93,5 +92,10 @@ button.primary {
 button.danger {
   background: #dc3545;
   color: white;
+}
+
+.pswd {
+  font-size: 1rem;
+  font-weight: bold;
 }
 </style>
