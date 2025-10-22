@@ -1,9 +1,8 @@
-/* Reset the Vite template constraints */
+/* App-wide base (dark mode focus) */
 :root {
-  /* force light look; remove if you want auto light/dark */
-  color-scheme: light;
-  background: #f384c1;
-  color: #111;
+  color-scheme: dark;
+  background: #0b0d10;
+  color: #e5e7eb;
 }
 
 html, body, #app {
@@ -17,18 +16,38 @@ html, body, #app {
   margin: 0;
   padding: 0;
   text-align: initial;
+  position: relative;
+  z-index: 1;
 }
 
-/* https://patterncraft.fun/ for the backgrounds */
 
 body {
-  background: 
-    radial-gradient(ellipse 85% 65% at 8% 8%, rgba(142, 63, 238, 0.42), transparent 60%),
-    radial-gradient(ellipse 75% 60% at 75% 35%, rgba(163, 100, 144, 0.55), transparent 62%),
-    radial-gradient(ellipse 70% 60% at 15% 80%, rgba(216, 42, 132, 0.4), transparent 62%),
-    radial-gradient(ellipse 70% 60% at 92% 92%, rgba(47, 138, 223, 0.45), transparent 62%),
-    linear-gradient(180deg, #f7eaff 0%, #fde2ea 100%);
-  background-attachment: fixed; /* optional: keep it static while scrolling */
-  background-size: cover;
+  background-color: #0b0d10;
+  background-image:
+    linear-gradient(
+      to bottom,
+      rgba(11, 13, 16, 0) 0%,
+      rgba(11, 13, 16, 0.75) 70%,
+      rgba(11, 13, 16, 1) 100%
+    ),
+    repeating-linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.26) 0px,
+      rgba(255, 255, 255, 0.26) 1px,
+      transparent 1px,
+      transparent 40px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.26) 0px,
+      rgba(255, 255, 255, 0.26) 1px,
+      transparent 1px,
+      transparent 40px
+    );
+
+  background-attachment: fixed, fixed, fixed;
+  background-size: auto, auto, auto;
+  background-position: center, center, center;
+
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
