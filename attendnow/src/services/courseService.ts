@@ -5,6 +5,7 @@ import {
   query,
   where,
   updateDoc,
+  deleteDoc,
   Timestamp,
   type Unsubscribe,
 } from "firebase/firestore";
@@ -26,7 +27,6 @@ export function listenMyCourses(
   cb: (courses: Course[]) => void
 ): Unsubscribe {
   const q = query(collection(db, "courses"), where("instructorId", "==", instructorId));
-
   return onSnapshot(
     q,
     (snap) => {
@@ -63,7 +63,6 @@ export async function startCheckIn(courseId: string, minutes = 5) {
   const id = uuid();
   const passcode = randomCode(4);
   const expires = new Date(Date.now() + minutes * 60_000);
-
   await updateDoc(doc(db, "courses", courseId), {
     activeCheckIn: {
       id,
@@ -72,10 +71,47 @@ export async function startCheckIn(courseId: string, minutes = 5) {
       startedAt: Timestamp.now(), // you can switch to serverTimestamp via CF if you prefer
     },
   });
-
   return { id, passcode, expiresAt: expires };
 }
 
 export async function endCheckIn(courseId: string) {
   await updateDoc(doc(db, "courses", courseId), { activeCheckIn: null });
+}
+
+/**
+ * Update course information (name, code, semester)
+ * @param courseId - The ID of the course to update
+ * @param updates - Object containing the fields to update
+ */
+export async function updateCourse(
+  courseId: string,
+  updates: {
+    name?: string;
+    code?: string;
+    semester?: string;
+  }
+) {
+  try {
+    const courseRef = doc(db, "courses", courseId);
+    await updateDoc(courseRef, updates);
+    console.log(`[courses] Updated course ${courseId}:`, updates);
+  } catch (error) {
+    console.error(`[courses] Error updating course ${courseId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Delete a course from Firestore
+ * @param courseId - The ID of the course to delete
+ */
+export async function deleteCourse(courseId: string) {
+  try {
+    const courseRef = doc(db, "courses", courseId);
+    await deleteDoc(courseRef);
+    console.log(`[courses] Deleted course ${courseId}`);
+  } catch (error) {
+    console.error(`[courses] Error deleting course ${courseId}:`, error);
+    throw error;
+  }
 }
