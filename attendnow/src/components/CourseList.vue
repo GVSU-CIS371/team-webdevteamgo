@@ -235,7 +235,7 @@ button.danger:hover {
   font-weight: bold;
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   .courses {
     color: #e5e7eb;
   }
