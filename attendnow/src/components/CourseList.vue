@@ -79,7 +79,7 @@ async function onDelete(course: Course) {
   const confirmed = confirm(
     `Are you sure you want to delete "${course.name}"?\n\nThis action cannot be undone.`
   );
-  
+
   if (confirmed) {
     try {
       await deleteCourse(course.id);
@@ -105,7 +105,7 @@ async function onSaveStudents(students: Student[]) {
 <template>
   <div class="courses">
     <div v-if="authLoading">Loading your courses…</div>
-    <div v-else-if="!instructorId">Please sign in to view your courses.</div>
+    <div v-else-if="!instructorId" style="color: white;">Please sign in to view your courses.</div>
     <div v-for="c in courses" :key="c.id" class="course">
       <div class="course-header">
         <div class="course-info">
@@ -113,21 +113,21 @@ async function onSaveStudents(students: Student[]) {
           <p>Students: {{ c.students_list.length }}</p>
         </div>
         <div class="course-actions">
-          <button @click="onEdit(c)" class="edit-btn" title="Edit course">
+          <button @click="onEdit(c)" class="btn btn-edit" title="Edit course">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
             </svg>
             Edit
           </button>
-          <button @click="onManageStudents(c)" class="students-btn" title="Manage students">
+          <button @click="onManageStudents(c)" class="btn btn-students" title="Manage students">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
               <circle cx="9" cy="7" r="4"/>
             </svg>
             Students
           </button>
-          <button @click="onDelete(c)" class="delete-btn" title="Delete course">
+          <button @click="onDelete(c)" class="btn btn-delete" title="Delete course">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="3 6 5 6 21 6"></polyline>
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -143,11 +143,11 @@ async function onSaveStudents(students: Student[]) {
         <p><strong>✅ Active Check-In</strong></p>
         <p>Passcode: <code class="pswd">{{ c.activeCheckIn.passcode }}</code></p>
         <p>Ends: {{ c.activeCheckIn.expiresAt.toLocaleTimeString() }}</p>
-        <button @click="onEnd(c.id)" class="danger">End check-in</button>
+        <button @click="onEnd(c.id)" class="btn btn-danger">End check-in</button>
       </div>
       <div v-else class="inactive">
         <p><em>No check-in running</em></p>
-        <button @click="onStart(c.id)" class="primary">Start check-in</button>
+        <button @click="onStart(c.id)" class="btn btn-primary">Start check-in</button>
       </div>
     </div>
   </div>
@@ -209,50 +209,66 @@ async function onSaveStudents(students: Student[]) {
   flex-shrink: 0;
 }
 
-.edit-btn,
-.delete-btn {
-  display: flex;
+/* === Unified Button System === */
+.btn {
+  display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   padding: 0.5rem 0.75rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 0.875rem;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.15);
 }
 
-.edit-btn {
+/* Button variants */
+.btn-edit {
   background: #f3f4f6;
   color: #374151;
 }
-
-.edit-btn:hover {
+.btn-edit:hover {
   background: #e5e7eb;
   color: #111827;
 }
 
-.delete-btn {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.delete-btn:hover {
-  background: #fecaca;
-  color: #b91c1c;
-}
-
-.students-btn {
+.btn-students {
   background: #eef2ff;
   color: #3730a3;
 }
-
-.students-btn:hover {
+.btn-students:hover {
   background: #e0e7ff;
   color: #312e81;
 }
 
+.btn-delete {
+  background: #fee2e2;
+  color: #dc2626;
+}
+.btn-delete:hover {
+  background: #fecaca;
+  color: #b91c1c;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+}
+.btn-primary:hover {
+  background: #0056b3;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+.btn-danger:hover {
+  background: #c82333;
+}
+
+/* Active & inactive states */
 .active {
   background: #e6ffed;
   padding: 0.5rem;
@@ -265,38 +281,12 @@ async function onSaveStudents(students: Student[]) {
   border-radius: 4px;
 }
 
-button.primary,
-button.danger {
-  margin-top: 0.5rem;
-  padding: 0.4rem 0.8rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-button.primary {
-  background: #007bff;
-  color: white;
-}
-
-button.primary:hover {
-  background: #0056b3;
-}
-
-button.danger {
-  background: #dc3545;
-  color: white;
-}
-
-button.danger:hover {
-  background: #c82333;
-}
-
 .pswd {
   font-size: 1rem;
   font-weight: bold;
 }
 
+/* Light theme adjustments */
 @media (prefers-color-scheme: light) {
   .courses {
     color: #e5e7eb;
@@ -311,24 +301,38 @@ button.danger:hover {
     color: #9ca3af;
   }
 
-  .edit-btn {
+  .btn {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+  }
+
+  .btn-edit {
     background: #374151;
     color: #d1d5db;
   }
 
-  .edit-btn:hover {
+  .btn-edit:hover {
     background: #4b5563;
     color: #f9fafb;
   }
 
-  .delete-btn {
+  .btn-delete {
     background: #7f1d1d;
     color: #fca5a5;
   }
 
-  .delete-btn:hover {
+  .btn-delete:hover {
     background: #991b1b;
     color: #fecaca;
+  }
+
+  .btn-students {
+    background: #312e81;
+    color: #c7d2fe;
+  }
+
+  .btn-students:hover {
+    background: #4338ca;
+    color: #e0e7ff;
   }
 
   .inactive {

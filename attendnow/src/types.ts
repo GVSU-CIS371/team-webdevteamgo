@@ -8,12 +8,17 @@ export type ActiveCheckIn =
       qrUrl?: string;
     };
 
+export type Student = {
+  email: string;
+  name: string;
+};
+
 export type Course = {
   id: string;
   instructorId: string;
   name: string;
   code: string;
   semester: string;
-  students: string[];
+  students_list: Student[];
   activeCheckIn: ActiveCheckIn;
 };

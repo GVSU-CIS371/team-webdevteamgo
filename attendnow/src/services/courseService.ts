@@ -10,7 +10,7 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import type { Course, ActiveCheckIn } from "../types";
+import type { Course, ActiveCheckIn, Student } from "../types";
 import { v4 as uuid } from "uuid";
 
 function toActive(a: any): ActiveCheckIn {
@@ -20,6 +20,29 @@ function toActive(a: any): ActiveCheckIn {
     expiresAt: (a.expiresAt as Timestamp).toDate(),
     startedAt: (a.startedAt as Timestamp).toDate(),
   };
+}
+
+function toStudentsList(a: any): Student[] {
+  if (!a) return [];
+  // If already an array of objects
+  if (Array.isArray(a)) {
+    return a
+      .filter(Boolean)
+      .map((s: any) => ({ email: String(s.email || '').toLowerCase(), name: String(s.name || '') }))
+      .filter((s: Student) => s.email.includes('@'));
+  }
+  // If stored as an object/map of { key: { email, name } }
+  if (typeof a === 'object') {
+    return Object.values(a as Record<string, any>)
+      .map((s: any) => ({ email: String(s.email || '').toLowerCase(), name: String(s.name || '') }))
+      .filter((s: Student) => s.email.includes('@'));
+  }
+  // Legacy: array of email strings
+  if (typeof a === 'string') {
+    const email = a.toLowerCase();
+    return email.includes('@') ? [{ email, name: '' }] : [];
+  }
+  return [];
 }
 
 export function listenMyCourses(
@@ -39,7 +62,9 @@ export function listenMyCourses(
           name: data.name,
           code: data.code,
           semester: data.semester,
-          students: data.students ?? [],
+          students_list: data.students_list
+            ? toStudentsList(data.students_list)
+            : (Array.isArray(data.students) ? (data.students as string[]).map((e) => ({ email: String(e).toLowerCase(), name: '' })) : []),
           activeCheckIn: toActive(data.activeCheckIn),
         } as Course;
       });
@@ -89,6 +114,7 @@ export async function updateCourse(
     name?: string;
     code?: string;
     semester?: string;
+    students_list?: Student[];
   }
 ) {
   try {
