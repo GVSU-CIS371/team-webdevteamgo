@@ -1,20 +1,42 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import { listenMyCourses, startCheckIn, endCheckIn, updateCourse, deleteCourse } from "../services/courseService";
 import CourseEditModal from "./CourseEditModal.vue";
-import type { Course } from "../types";
+import CourseStudentsModal from "./CourseStudentsModal.vue";
+import type { Course, Student } from "../types";
+import { useAuth } from "../lib/useAuth";
 
-// TODO: replace this with your real Auth UID once you wire Firebase Auth
-const instructorId = "tjuFeWwFszXemcH6LwNcBwHtnbW2";
+// Use the currently authenticated instructor UID
+const { user, loading: authLoading } = useAuth();
+const instructorId = computed(() => user.value?.uid || "");
 
 const courses = ref<Course[]>([]);
 const showEditModal = ref(false);
 const editingCourse = ref<Course | null>(null);
+const showStudentsModal = ref(false);
+const studentsCourse = ref<Course | null>(null);
 
 let off: (() => void) | null = null;
 
+function resubscribe() {
+  if (off) {
+    off();
+    off = null;
+  }
+  const uid = instructorId.value;
+  if (!uid) {
+    courses.value = [];
+    return;
+  }
+  off = listenMyCourses(uid, (rows) => (courses.value = rows));
+}
+
 onMounted(() => {
-  off = listenMyCourses(instructorId, (rows) => (courses.value = rows));
+  resubscribe();
+});
+
+watch(instructorId, () => {
+  resubscribe();
 });
 
 onUnmounted(() => {
@@ -32,6 +54,11 @@ async function onEnd(id: string) {
 function onEdit(course: Course) {
   editingCourse.value = course;
   showEditModal.value = true;
+}
+
+function onManageStudents(course: Course) {
+  studentsCourse.value = course;
+  showStudentsModal.value = true;
 }
 
 async function onSave(updatedCourse: Course) {
@@ -63,15 +90,27 @@ async function onDelete(course: Course) {
     }
   }
 }
+
+async function onSaveStudents(students: Student[]) {
+  if (!studentsCourse.value) return;
+  try {
+    await updateCourse(studentsCourse.value.id, { students_list: students });
+  } catch (error) {
+    console.error("Error updating students:", error);
+    alert("Failed to update students. Please try again.");
+  }
+}
 </script>
 
 <template>
   <div class="courses">
+    <div v-if="authLoading">Loading your courses…</div>
+    <div v-else-if="!instructorId">Please sign in to view your courses.</div>
     <div v-for="c in courses" :key="c.id" class="course">
       <div class="course-header">
         <div class="course-info">
           <h3>{{ c.name }} ({{ c.code }}) — {{ c.semester }}</h3>
-          <p>Students: {{ c.students.length }}</p>
+          <p>Students: {{ c.students_list.length }}</p>
         </div>
         <div class="course-actions">
           <button @click="onEdit(c)" class="edit-btn" title="Edit course">
@@ -80,6 +119,13 @@ async function onDelete(course: Course) {
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
             </svg>
             Edit
+          </button>
+          <button @click="onManageStudents(c)" class="students-btn" title="Manage students">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+            </svg>
+            Students
           </button>
           <button @click="onDelete(c)" class="delete-btn" title="Delete course">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -110,6 +156,12 @@ async function onDelete(course: Course) {
     :course="editingCourse"
     v-model:show="showEditModal"
     @save="onSave"
+  />
+
+  <CourseStudentsModal
+    :course="studentsCourse"
+    v-model:show="showStudentsModal"
+    @save="onSaveStudents"
   />
 </template>
 
@@ -189,6 +241,16 @@ async function onDelete(course: Course) {
 .delete-btn:hover {
   background: #fecaca;
   color: #b91c1c;
+}
+
+.students-btn {
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.students-btn:hover {
+  background: #e0e7ff;
+  color: #312e81;
 }
 
 .active {

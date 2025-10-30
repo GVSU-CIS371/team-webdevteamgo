@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
 import logo from "../assets/logo.png";
+import UserMenu from "./UserMenu.vue";
 
 const emit = defineEmits<{ (e: 'open-auth', mode: 'signin' | 'signup'): void }>()
-const onSignIn = () => emit('open-auth', 'signin')
-const onSignUp = () => emit('open-auth', 'signup')
+const forwardOpen = (mode: 'signin' | 'signup') => emit('open-auth', mode)
 </script>
 
 <template>
@@ -20,8 +20,7 @@ const onSignUp = () => emit('open-auth', 'signup')
       <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>
     </div>
     <div class="right">
-      <button class="ghost" @click="onSignIn">Sign in</button>
-      <button class="solid" @click="onSignUp">Sign up</button>
+      <UserMenu @open-auth="forwardOpen" />
     </div>
   </nav>
 </template>

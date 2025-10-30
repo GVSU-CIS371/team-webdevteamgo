@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 // (Optional) Analytics: only works in browsers with HTTPS and proper setup
 import { getAnalytics, isSupported } from "firebase/analytics";
 
@@ -14,5 +15,6 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+export const auth = getAuth(app);
 
 export const analyticsPromise = isSupported().then((ok) => (ok ? getAnalytics(app) : null));

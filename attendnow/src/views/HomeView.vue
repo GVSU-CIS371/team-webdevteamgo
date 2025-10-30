@@ -31,7 +31,7 @@ import { RouterLink } from "vue-router";
     <section class="card">
       <h2>Data Model (starter)</h2>
       <p><strong>instructors</strong>: { instructorId, name, email }</p>
-      <p><strong>courses</strong>: { name, code, semester, students[], instructorId, activeCheckIn }</p>
+      <p><strong>courses</strong>: { name, code, semester, students_list: [{ email, name }], instructorId, activeCheckIn }</p>
       <p><strong>activeCheckIn</strong>: null or { id, passcode, startedAt, expiresAt, qrUrl? }</p>
     </section>
 
