@@ -2,38 +2,53 @@
 import { ref, watch } from 'vue'
 import type { Course, Student } from '../types'
 
-const props = defineProps<{ course: Course | null; show: boolean }>()
-const emit = defineEmits<{ 'update:show': [boolean]; 'save': [students: Student[]] }>()
+const props = defineProps<{
+  course: Course | null
+  show: boolean
+}>()
+
+const emit = defineEmits<{
+  'update:show': [boolean]
+  'save': [students: Student[]]
+}>()
 
 const text = ref('')
+const backupText = ref('') // ← new
 const parseError = ref<string | null>(null)
 
 watch(
   () => props.course,
   (c) => {
     if (!c) return
-    // Convert existing list to name,email per line
     let list: Student[] = []
     const raw: any = (c as any).students_list
-    if (Array.isArray(raw)) list = raw as Student[]
-    else if (raw && typeof raw === 'object') list = Object.values(raw as Record<string, any>) as Student[]
-    text.value = (list || [])
-      .map((s) => `${(s?.name || '').trim()},${(s?.email || '').trim()}`.replace(/^,/, ''))
+    if (Array.isArray(raw)) list = raw
+    else if (raw && typeof raw === 'object')
+      list = Object.values(raw as Record<string, any>) as Student[]
+
+    const formatted = (list || [])
+      .map((s) => `${(s?.name ?? '').trim()},${(s?.email ?? '').trim()}`)
       .filter(Boolean)
       .join('\n')
+
+    text.value = formatted
+    backupText.value = formatted // ← store original
     parseError.value = null
   },
   { immediate: true }
 )
 
-function close() { emit('update:show', false) }
+function close() {
+  text.value = backupText.value
+  emit('update:show', false)
+}
 
 function parseCSVToStudents(input: string): Student[] {
   const out: Student[] = []
   for (const line of input.split(/\r?\n/)) {
     const trimmed = line.trim()
     if (!trimmed) continue
-    const parts = trimmed.split(',').map(p => p.trim()).filter(Boolean)
+    const parts = trimmed.split(',').map((p) => p.trim()).filter(Boolean)
     let email = ''
     let name = ''
     if (parts.length === 1) {
@@ -48,16 +63,15 @@ function parseCSVToStudents(input: string): Student[] {
         email = p0
         name = p1
       } else {
-        const emailIdx = parts.findIndex(p => p.includes('@'))
+        const emailIdx = parts.findIndex((p) => p.includes('@'))
         if (emailIdx >= 0) {
           email = parts[emailIdx]
-          name = parts[(emailIdx === 0 ? 1 : 0)] || ''
+          name = parts[emailIdx === 0 ? 1 : 0] || ''
         }
       }
     }
     if (email && email.includes('@')) out.push({ email: email.toLowerCase(), name })
   }
-  // dedupe by email
   const seen = new Set<string>()
   const dedup: Student[] = []
   for (const s of out) {
@@ -78,10 +92,10 @@ function onFileChange(e: Event) {
       const content = String(reader.result || '')
       const imported = parseCSVToStudents(content)
       const current = parseCSVToStudents(text.value)
-      const byEmail = new Map(current.map(s => [s.email, s]))
+      const byEmail = new Map(current.map((s) => [s.email, s]))
       for (const s of imported) if (!byEmail.has(s.email)) byEmail.set(s.email, s)
       const merged = Array.from(byEmail.values())
-      text.value = merged.map(s => `${s.name || ''},${s.email}`).join('\n')
+      text.value = merged.map((s) => `${s.name || ''},${s.email}`).join('\n')
       parseError.value = null
     } catch (err: any) {
       parseError.value = err?.message || 'Failed to parse CSV'
@@ -105,56 +119,250 @@ function onSave() {
 <template>
   <Transition name="modal">
     <div v-if="show" class="modal-backdrop" @click.self="close">
-      <div class="modal">
-        <header class="modal-header">
-          <h3>Manage Students</h3>
-          <button class="icon" @click="close" aria-label="Close">✕</button>
-        </header>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Manage Students</h2>
+          <button class="close-btn" @click="close" aria-label="Close">&times;</button>
+        </div>
 
-        <div class="body">
-          <p class="hint">One per line: name,email (preferred). CSV import merges into this list. Duplicate emails are ignored.</p>
+        <form class="modal-body" @submit.prevent="onSave">
+          <p class="hint">
+            Enter one student per line as <strong>name,email</strong>. You can also import a CSV file; duplicate emails are ignored.
+          </p>
 
-          <textarea v-model="text" rows="12" placeholder="Ada Lovelace,ada@gvsu.edu\nGrace Hopper,grace@gvsu.edu"></textarea>
-
-          <div class="actions">
-            <label class="import">
-              <input type="file" accept=".csv,text/csv,text/plain" @change="onFileChange" hidden />
-              <span>Import CSV</span>
-            </label>
-            <button class="ghost" type="button" @click="text = ''">Clear</button>
-            <div class="spacer" />
-            <button class="cancel" type="button" @click="close">Cancel</button>
-            <button class="primary" type="button" @click="onSave">Save</button>
-          </div>
+          <textarea
+            v-model="text"
+            rows="12"
+            placeholder="John Doe,john@example.com&#10;Jane Smith,jane@example.com"
+          ></textarea>
 
           <p v-if="parseError" class="error">{{ parseError }}</p>
-        </div>
+
+          <div class="modal-footer">
+            <label class="btn-cancel import-label">
+              <input type="file" accept=".csv,text/csv,text/plain" @change="onFileChange" hidden />
+              Import CSV
+            </label>
+            <button type="button" class="btn-cancel" @click="text = ''">Clear</button>
+            <button type="button" class="btn-cancel" @click="close">Cancel</button>
+            <button type="submit" class="btn-save">Save Changes</button>
+          </div>
+        </form>
       </div>
     </div>
   </Transition>
-  
 </template>
 
 <style scoped>
-.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; z-index: 100; }
-.modal { width: 100%; max-width: 640px; background: #121418; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); overflow: hidden; }
-.modal-header { display:flex; align-items:center; justify-content:space-between; padding: .75rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
-.modal-header h3 { margin: 0; color:#e5e7eb; }
-.icon { background:none; border:none; color:#e5e7eb; font-size: 1rem; cursor:pointer; }
-.body { padding: 1rem; display:flex; flex-direction:column; gap:.75rem; }
-.hint { color:#9ca3af; margin:0 0 .25rem; }
-textarea { resize: vertical; min-height: 220px; padding:.55rem .65rem; border-radius:8px; background:#0b0d10; border:1px solid rgba(255,255,255,0.12); color:#e5e7eb; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-.actions { display:flex; align-items:center; gap:.5rem; margin-top:.25rem; }
-.import { display:inline-flex; align-items:center; gap:.4rem; padding:.45rem .7rem; border-radius:8px; border:1px solid rgba(255,255,255,0.2); color:#e5e7eb; cursor:pointer; }
-.ghost { background: transparent; color:#e5e7eb; border:1px solid rgba(255,255,255,0.2); padding:.45rem .7rem; border-radius:8px; cursor:pointer; }
-.cancel { background: transparent; color:#e5e7eb; border:1px solid rgba(255,255,255,0.2); padding:.45rem .7rem; border-radius:8px; cursor:pointer; }
-.primary { background:#8ab4ff; color:#0b0d10; border:none; padding:.5rem .8rem; border-radius:8px; cursor:pointer; font-weight:600; }
-.primary:hover { filter: brightness(1.05); }
-.spacer { flex:1 }
-.error { color: #fda4af; }
-@media (prefers-color-scheme: light) {
-  .modal { background: #fff; }
-  .modal-header h3 { color: #111; }
-  textarea { background: #fff; color: #111; border-color: #d1d5db; }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #111827;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: #6b7280;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.hint {
+  color: #6b7280;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 220px;
+  padding: 0.625rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  box-sizing: border-box;
+  color: #111827;
+  background-color: #fff;
+  transition: border-color 0.2s;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.error {
+  color: #dc2626;
+  margin-top: 0.5rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.modal-footer button,
+.import-label {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-cancel:hover {
+  background: #e5e7eb;
+}
+
+.import-label {
+  background: #f9fafb;
+  color: #2563eb;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+}
+
+.import-label:hover {
+  background: #eff6ff;
+}
+
+.btn-save {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-save:hover {
+  background: #2563eb;
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .modal-content,
+.modal-leave-active .modal-content {
+  transition: transform 0.3s ease;
+}
+
+.modal-enter-from .modal-content,
+.modal-leave-to .modal-content {
+  transform: scale(0.9);
+}
+
+@media (prefers-color-scheme: dark) {
+  .modal-content {
+    background: #1f2937;
+  }
+
+  .modal-header {
+    border-bottom-color: #374151;
+  }
+
+  .modal-header h2 {
+    color: #f9fafb;
+  }
+
+  .close-btn {
+    color: #9ca3af;
+  }
+
+  .close-btn:hover {
+    background-color: #374151;
+    color: #f9fafb;
+  }
+
+  .hint {
+    color: #9ca3af;
+  }
+
+  textarea {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+  }
+
+  textarea:focus {
+    border-color: #3b82f6;
+  }
+
+  .modal-footer {
+    border-top-color: #374151;
+  }
+
+  .btn-cancel {
+    background: #374151;
+    color: #d1d5db;
+  }
+
+  .btn-cancel:hover {
+    background: #4b5563;
+  }
+
+  .btn-save {
+    background: #3b82f6;
+    color: #fff;
+  }
+
+  .btn-save:hover {
+    background: #2563eb;
+  }
 }
 </style>
