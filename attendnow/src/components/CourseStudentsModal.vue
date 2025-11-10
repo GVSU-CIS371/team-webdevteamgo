@@ -21,7 +21,7 @@ watch(
   (c) => {
     if (!c) return
     let list: Student[] = []
-    const raw: any = (c as any).students_list
+    const raw: any = (c as any).studentsList
     if (Array.isArray(raw)) list = raw
     else if (raw && typeof raw === 'object')
       list = Object.values(raw as Record<string, any>) as Student[]

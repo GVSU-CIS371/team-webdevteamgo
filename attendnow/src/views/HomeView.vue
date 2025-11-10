@@ -29,10 +29,11 @@ import { RouterLink } from "vue-router";
     </section>
 
     <section class="card">
-      <h2>Data Model (starter)</h2>
+      <h2>Data Model</h2>
       <p><strong>instructors</strong>: { instructorId, name, email }</p>
-      <p><strong>courses</strong>: { name, code, semester, students_list: [{ email, name }], instructorId, activeCheckIn }</p>
-      <p><strong>activeCheckIn</strong>: null or { id, passcode, startedAt, expiresAt, qrUrl? }</p>
+      <p><strong>courses</strong>: { name, code, semester, studentsList: [{ email, name }], instructorId, activeCheckInRef, activeCheckIn }</p>
+      <p><strong>checkins</strong>: { id, courseId, instructorId?, passcode, startedAt, expiresAt, endedAt, studentEmails: string[] }</p>
+      <p><strong>activeCheckIn</strong> (on course): null or { id, passcode, startedAt, expiresAt, qrUrl? } for UI convenience</p>
     </section>
 
     <section class="card">

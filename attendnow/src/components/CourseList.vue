@@ -94,7 +94,7 @@ async function onDelete(course: Course) {
 async function onSaveStudents(students: Student[]) {
   if (!studentsCourse.value) return;
   try {
-    await updateCourse(studentsCourse.value.id, { students_list: students });
+    await updateCourse(studentsCourse.value.id, { studentsList: students });
   } catch (error) {
     console.error("Error updating students:", error);
     alert("Failed to update students. Please try again.");
@@ -110,7 +110,7 @@ async function onSaveStudents(students: Student[]) {
       <div class="course-header">
         <div class="course-info">
           <h3>{{ c.name }} ({{ c.code }}) — {{ c.semester }}</h3>
-          <p>Students: {{ c.students_list.length }}</p>
+          <p>Students: {{ c.studentsList.length }}</p>
         </div>
         <div class="course-actions">
           <button @click="onEdit(c)" class="btn btn-edit" title="Edit course">
