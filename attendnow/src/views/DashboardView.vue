@@ -17,4 +17,3 @@ import CourseList from "../components/CourseList.vue";
   .title { color: #e5e7eb; }
 }
 </style>
-

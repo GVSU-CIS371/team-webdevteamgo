@@ -18,6 +18,7 @@ const forwardOpen = (mode: 'signin' | 'signup') => emit('open-auth', mode)
     <div class="center">
       <RouterLink to="/" class="link">Home</RouterLink>
       <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>
+      <RouterLink to="/snapshot" class="link">Today's Snapshot</RouterLink>
     </div>
     <div class="right">
       <UserMenu @open-auth="forwardOpen" />

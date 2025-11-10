@@ -7,10 +7,13 @@ import {
   updateDoc,
   deleteDoc,
   Timestamp,
+  addDoc,
+  getDoc,
+  arrayUnion,
   type Unsubscribe,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import type { Course, ActiveCheckIn, Student } from "../types";
+import type { Course, ActiveCheckIn, Student, CheckIn } from "../types";
 import { v4 as uuid } from "uuid";
 
 function toActive(a: any): ActiveCheckIn {
@@ -62,9 +65,17 @@ export function listenMyCourses(
           name: data.name,
           code: data.code,
           semester: data.semester,
-          students_list: data.students_list
-            ? toStudentsList(data.students_list)
-            : (Array.isArray(data.students) ? (data.students as string[]).map((e) => ({ email: String(e).toLowerCase(), name: '' })) : []),
+          // Read from new field first, then fall back to legacy shapes
+          studentsList: data.studentsList
+            ? toStudentsList(data.studentsList)
+            : (data.students_list
+                ? toStudentsList(data.students_list)
+                : (Array.isArray(data.students)
+                    ? (data.students as string[]).map((e) => ({ email: String(e).toLowerCase(), name: '' }))
+                    : []
+                  )
+              ),
+          activeCheckInRef: data.activeCheckInRef ?? null,
           activeCheckIn: toActive(data.activeCheckIn),
         } as Course;
       });
@@ -84,23 +95,101 @@ function randomCode(len = 4) {
   return Array.from({ length: len }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join("");
 }
 
-export async function startCheckIn(courseId: string, minutes = 5) {
+/**
+ * Start a check-in session for a course.
+ * Creates a document in `checkins` and stores a reference on the course doc.
+ * Also keeps a lightweight `activeCheckIn` object on the course for UI convenience.
+ */
+export async function startCheckIn(courseId: string, minutes = 5): Promise<CheckIn> {
   const id = uuid();
   const passcode = randomCode(4);
-  const expires = new Date(Date.now() + minutes * 60_000);
-  await updateDoc(doc(db, "courses", courseId), {
+  const startedAtJs = new Date();
+  const expiresJs = new Date(Date.now() + minutes * 60_000);
+
+  // Fetch minimal course fields for denormalization (instructorId optional)
+  const courseRef = doc(db, "courses", courseId);
+  const courseSnap = await getDoc(courseRef);
+  const courseData = courseSnap.exists() ? (courseSnap.data() as any) : {};
+
+  // Create typed check-in object
+  const checkIn: CheckIn = {
+    id,
+    courseId,
+    instructorId: (courseData?.instructorId as string | undefined) || undefined,
+    passcode,
+    startedAt: startedAtJs,
+    expiresAt: expiresJs,
+    endedAt: null,
+    studentEmails: [],
+  };
+
+  // Create check-in document
+  const checkInsCol = collection(db, "checkins");
+  const checkInDocRef = await addDoc(checkInsCol, {
+    id: checkIn.id, // store generated id for easy queries
+    courseId: checkIn.courseId,
+    instructorId: checkIn.instructorId ?? null,
+    passcode: checkIn.passcode,
+    startedAt: Timestamp.fromDate(checkIn.startedAt),
+    expiresAt: Timestamp.fromDate(checkIn.expiresAt),
+    endedAt: null,
+    studentEmails: checkIn.studentEmails,
+  });
+
+  // Update course with reference + convenience info for UI
+  await updateDoc(courseRef, {
+    activeCheckInRef: checkInDocRef,
     activeCheckIn: {
       id,
       passcode,
-      expiresAt: Timestamp.fromDate(expires),
-      startedAt: Timestamp.now(), // you can switch to serverTimestamp via CF if you prefer
+      expiresAt: Timestamp.fromDate(expiresJs),
+      startedAt: Timestamp.fromDate(startedAtJs),
     },
   });
-  return { id, passcode, expiresAt: expires };
+
+  return checkIn;
 }
 
+/**
+ * End the current check-in session for a course.
+ * Updates `endedAt` on the check-in doc and clears the course reference + UI object.
+ */
 export async function endCheckIn(courseId: string) {
-  await updateDoc(doc(db, "courses", courseId), { activeCheckIn: null });
+  const courseRef = doc(db, "courses", courseId);
+  const snap = await getDoc(courseRef);
+  if (!snap.exists()) return;
+  const data = snap.data() as any;
+  const ref = data?.activeCheckInRef;
+
+  try {
+    if (ref) {
+      await updateDoc(ref, { endedAt: Timestamp.fromDate(new Date()) });
+    }
+  } finally {
+    await updateDoc(courseRef, { activeCheckInRef: null, activeCheckIn: null });
+  }
+}
+
+/**
+ * Append a student email to the active check-in's studentEmails array.
+ * If you already know the check-in id, prefer recordStudentCheckInById.
+ */
+export async function recordStudentCheckIn(courseId: string, email: string) {
+  const courseRef = doc(db, "courses", courseId);
+  const snap = await getDoc(courseRef);
+  if (!snap.exists()) return;
+  const data = snap.data() as any;
+  const ref = data?.activeCheckInRef;
+  if (!ref) return;
+  await updateDoc(ref, { studentEmails: arrayUnion(String(email).toLowerCase()) });
+}
+
+/**
+ * Append a student email given a check-in document id.
+ */
+export async function recordStudentCheckInById(checkInId: string, email: string) {
+  const ref = doc(db, "checkins", checkInId);
+  await updateDoc(ref, { studentEmails: arrayUnion(String(email).toLowerCase()) });
 }
 
 /**
@@ -114,7 +203,7 @@ export async function updateCourse(
     name?: string;
     code?: string;
     semester?: string;
-    students_list?: Student[];
+    studentsList?: Student[];
   }
 ) {
   try {
