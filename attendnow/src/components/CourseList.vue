@@ -114,11 +114,11 @@ async function onSaveStudents(students: Student[]) {
     <div v-if="authLoading">Loading your courses…</div>
     <div v-else-if="!instructorId" style="color: white;">Please sign in to view your courses.</div>
     <div v-for="c in courses" :key="c.id" class="course">
+      <div class="course-info">
+        <h3>{{ c.name }} ({{ c.code }}) — {{ c.semester }}</h3>
+        <p>Students: {{ c.studentsList.length }}</p>
+      </div>
       <div class="course-header">
-        <div class="course-info">
-          <h3>{{ c.name }} ({{ c.code }}) — {{ c.semester }}</h3>
-          <p>Students: {{ c.studentsList.length }}</p>
-        </div>
         <div class="course-actions">
           <button @click="onEdit(c)" class="btn btn-edit" title="Edit course">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -215,13 +215,19 @@ async function onSaveStudents(students: Student[]) {
 .course-info p {
   margin: 0;
   color: #666;
+  padding-bottom: 1rem;
 }
 
 .course-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.course-actions .btn {
+  width: 100%;
+  justify-content: center;
 }
 
 /* === Unified Button System === */
@@ -229,7 +235,7 @@ async function onSaveStudents(students: Student[]) {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem;
   border: none;
   border-radius: 8px;
   cursor: pointer;
