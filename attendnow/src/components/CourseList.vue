@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, computed } from "vue";
+import { useRouter } from "vue-router";
 import { listenMyCourses, startCheckIn, endCheckIn, updateCourse, deleteCourse } from "../services/courseService";
 import CourseEditModal from "./CourseEditModal.vue";
 import CourseStudentsModal from "./CourseStudentsModal.vue";
 import type { Course, Student } from "../types";
 import { useAuth } from "../lib/useAuth";
+
+const router = useRouter();
 
 // Use the currently authenticated instructor UID
 const { user, loading: authLoading } = useAuth();
@@ -59,6 +62,10 @@ function onEdit(course: Course) {
 function onManageStudents(course: Course) {
   studentsCourse.value = course;
   showStudentsModal.value = true;
+}
+
+function onViewAttendance(course: Course) {
+  router.push({ name: "attendance-history", params: { courseId: course.id } });
 }
 
 async function onSave(updatedCourse: Course) {
@@ -126,6 +133,13 @@ async function onSaveStudents(students: Student[]) {
               <circle cx="9" cy="7" r="4"/>
             </svg>
             Students
+          </button>
+          <button @click="onViewAttendance(c)" class="btn btn-attendance" title="View attendance history">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 11l3 3L22 4"></path>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+            Attendance History
           </button>
           <button @click="onDelete(c)" class="btn btn-delete" title="Delete course">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -207,6 +221,7 @@ async function onSaveStudents(students: Student[]) {
   display: flex;
   gap: 0.5rem;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 /* === Unified Button System === */
@@ -241,6 +256,15 @@ async function onSaveStudents(students: Student[]) {
 .btn-students:hover {
   background: #e0e7ff;
   color: #312e81;
+}
+
+.btn-attendance {
+  background: #f0fdf4;
+  color: #15803d;
+}
+.btn-attendance:hover {
+  background: #dcfce7;
+  color: #166534;
 }
 
 .btn-delete {
@@ -333,6 +357,16 @@ async function onSaveStudents(students: Student[]) {
   .btn-students:hover {
     background: #4338ca;
     color: #e0e7ff;
+  }
+
+  .btn-attendance {
+    background: #14532d;
+    color: #86efac;
+  }
+
+  .btn-attendance:hover {
+    background: #166534;
+    color: #bbf7d0;
   }
 
   .inactive {

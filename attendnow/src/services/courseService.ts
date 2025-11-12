@@ -9,7 +9,9 @@ import {
   Timestamp,
   addDoc,
   getDoc,
+  getDocs,
   arrayUnion,
+  orderBy,
   type Unsubscribe,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
@@ -227,6 +229,74 @@ export async function deleteCourse(courseId: string) {
     console.log(`[courses] Deleted course ${courseId}`);
   } catch (error) {
     console.error(`[courses] Error deleting course ${courseId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Get a single course by ID
+ * @param courseId - The ID of the course to fetch
+ * @returns Course object or null if not found
+ */
+export async function getCourse(courseId: string): Promise<Course | null> {
+  try {
+    const courseRef = doc(db, "courses", courseId);
+    const courseSnap = await getDoc(courseRef);
+    
+    if (!courseSnap.exists()) {
+      return null;
+    }
+
+    const data = courseSnap.data() as any;
+    return {
+      id: courseSnap.id,
+      instructorId: data.instructorId,
+      name: data.name,
+      code: data.code,
+      semester: data.semester,
+      studentsList: data.studentsList
+        ? toStudentsList(data.studentsList)
+        : [],
+      activeCheckInRef: data.activeCheckInRef ?? null,
+      activeCheckIn: toActive(data.activeCheckIn),
+    } as Course;
+  } catch (error) {
+    console.error(`[courses] Error fetching course ${courseId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Get all check-ins for a specific course, ordered by start time (most recent first)
+ * @param courseId - The ID of the course
+ * @returns Array of CheckIn objects
+ */
+export async function getCourseCheckIns(courseId: string): Promise<CheckIn[]> {
+  try {
+    const checkInsCol = collection(db, "checkins");
+    const q = query(
+      checkInsCol,
+      where("courseId", "==", courseId),
+      orderBy("startedAt", "desc")
+    );
+    
+    const querySnapshot = await getDocs(q);
+    
+    return querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: data.id || doc.id,
+        courseId: data.courseId,
+        instructorId: data.instructorId || undefined,
+        passcode: data.passcode,
+        startedAt: (data.startedAt as Timestamp).toDate(),
+        expiresAt: (data.expiresAt as Timestamp).toDate(),
+        endedAt: data.endedAt ? (data.endedAt as Timestamp).toDate() : null,
+        studentEmails: Array.isArray(data.studentEmails) ? data.studentEmails : [],
+      } as CheckIn;
+    });
+  } catch (error) {
+    console.error(`[courses] Error fetching check-ins for course ${courseId}:`, error);
     throw error;
   }
 }
