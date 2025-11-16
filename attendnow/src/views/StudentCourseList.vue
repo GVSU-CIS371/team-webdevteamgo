@@ -1,51 +1,68 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { ref, onMounted } from "vue";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../lib/firebase";
 import { useRouter } from "vue-router";
+import {
+  collection,
+  getDocs,
+} from "firebase/firestore";
+import { db } from "../lib/firebase";
+import type { Course } from "../types";
 
 const router = useRouter();
-const courses = ref<any[]>([]);
+const courses = ref<Course[]>([]);
 const loading = ref(true);
 
-// Fetch all courses (student view)
 onMounted(async () => {
   const snap = await getDocs(collection(db, "courses"));
-  courses.value = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  courses.value = snap.docs.map((d) => d.data() as Course);
   loading.value = false;
 });
 
-function goToCheckIn(courseId: string) {
-  router.push(`/checkin/${courseId}`);
+function goToCheckIn(course: Course) {
+  if (!course.activeCheckIn) return;
+
+  // Using embedded activeCheckIn for routing
+  router.push({
+    name: "student-check-in",
+    params: { checkinId: course.activeCheckIn.id, courseId: course.id },
+  });
 }
 </script>
 
 <template>
-  <div class="courses">
-    <h2>Available Courses</h2>
+  <div class="p-6">
+    <h1 class="text-2xl font-bold mb-4">Available Courses</h1>
 
-    <div v-if="loading">Loading courses…</div>
+    <div v-if="loading">Loading...</div>
 
-    <div v-for="c in courses" :key="c.id" class="course">
-      <h3>{{ c.name }} ({{ c.code }}) — {{ c.semester }}</h3>
-
-      <!-- Status -->
-      <p v-if="c.activeCheckIn">
-        <strong>Active Check-In</strong> 
-      </p>
-      <p v-else class="inactive">No active check-in</p>
-
-      <!-- Button -->
-      <button
-        :disabled="!c.activeCheckIn"
-        @click="goToCheckIn(c.id)"
-        class="btn"
+    <div v-else class="space-y-4">
+      <div
+        v-for="course in courses"
+        :key="course.id"
+        class="course"
       >
-        Check In
-      </button>
+        <div>
+          <p class="font-semibold">{{ course.name }}</p>
+          <p class="text-gray-600">{{ course.code }} — {{ course.semester }}</p>
+        </div>
+
+        <button
+          :disabled="!course.activeCheckIn"
+          @click="goToCheckIn(course)"
+          class="px-4 py-2 rounded text-white"
+          :class="
+            course.activeCheckIn
+              ? 'bg-blue-600 hover:bg-blue-700'
+              : 'bg-gray-400 cursor-not-allowed'
+          "
+        >
+          Check In
+        </button>
+      </div>
     </div>
   </div>
 </template>
+
 
 <style scoped>
 .courses { max-width: 700px; margin: 2rem auto; }

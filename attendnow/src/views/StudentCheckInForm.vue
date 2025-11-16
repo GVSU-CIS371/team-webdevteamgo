@@ -1,121 +1,130 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { doc, getDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  arrayUnion,
+} from "firebase/firestore";
 import { db } from "../lib/firebase";
+
+import type { Course, Student } from "../types";
 
 const route = useRoute();
 const router = useRouter();
 
-const courseId = route.params.courseId as string;
-const course = ref<any>(null);
-const loading = ref(true);
+const course = ref<Course | null>(null);
+const step = ref<"info" | "passcode">("info");
 
-// Student input fields
-const name = ref("");
-const email = ref("");
-
-// UI states
-const studentValidated = ref(false);
-const error = ref("");
+const studentName = ref("");
+const studentEmail = ref("");
 const passcode = ref("");
 
-// Load course
+const loading = ref(true);
+const error = ref("");
+
+const courseId = route.params.courseId as string;
+
 onMounted(async () => {
   const snap = await getDoc(doc(db, "courses", courseId));
   if (!snap.exists()) {
     error.value = "Course not found.";
-  } else {
-    course.value = snap.data();
+    return;
   }
+  course.value = snap.data() as Course;
   loading.value = false;
 });
 
-// Step 1 — Validate student exists
-function validateStudent() {
-  error.value = "";
-
-  if (!course.value) return;
-
-  const student = course.value.studentsList?.find(
-    (s: any) =>
-      s.email.toLowerCase() === email.value.toLowerCase() &&
-      s.name.toLowerCase() === name.value.toLowerCase()
-  );
-
-  if (!student) {
-    error.value = "Student not found in this course.";
+function proceedToPasscode() {
+  if (!studentName.value || !studentEmail.value) {
+    error.value = "Please enter both name and email.";
     return;
   }
-
-  studentValidated.value = true;
+  step.value = "passcode";
 }
 
-// Step 2 — Verify passcode
-function validatePasscode() {
-  error.value = "";
-
-  const active = course.value.activeCheckIn;
-  if (!active) {
-    error.value = "There is no active check-in for this course.";
+async function attemptCheckIn() {
+  if (!course.value || !course.value.activeCheckIn) {
+    error.value = "Check-in is no longer active.";
     return;
   }
 
-  if (passcode.value !== active.passcode) {
+  const expected = course.value.activeCheckIn.passcode.trim();
+  if (passcode.value.trim() !== expected) {
     error.value = "Incorrect passcode.";
     return;
   }
 
-  // Success → route to confirmation page
-  router.push(
-    `/checkin/${courseId}/confirm?email=${encodeURIComponent(email.value)}`
-  );
+  const student: Student = {
+    name: studentName.value.trim(),
+    email: studentEmail.value.trim(),
+  };
+
+  const courseRef = doc(db, "courses", course.value.id);
+  await updateDoc(courseRef, {
+    studentsList: arrayUnion(student),
+  });
+
+  const checkinId = course.value.activeCheckIn.id;
+  const checkinRef = doc(db, "checkins", checkinId);
+
+  await updateDoc(checkinRef, {
+    studentEmails: arrayUnion(student.email),
+  });
+
+  router.push("/thank-you");
 }
 </script>
 
 <template>
-  <div v-if="loading">Loading…</div>
+  <div class="p-6">
+    <h1 class="text-xl font-bold mb-4">Course Check-In</h1>
 
-  <div v-else>
-    <h2>Check In — {{ course?.name }}</h2>
+    <div v-if="loading">Loading...</div>
+    <p v-if="error" class="text-red-600 mb-4">{{ error }}</p>
 
-    <form v-if="!studentValidated" @submit.prevent="validateStudent">
-      <label>Name:</label>
-      <input v-model="name" required />
+    <div v-if="course">
 
-      <label>Email:</label>
-      <input v-model="email" type="email" required />
+      
+      <div v-if="step === 'info'" class="space-y-4">
+        <input
+          v-model="studentName"
+          placeholder="Your Name"
+          class="border px-3 py-2 w-full rounded"
+        />
+        <input
+          v-model="studentEmail"
+          placeholder="Your Email"
+          class="border px-3 py-2 w-full rounded"
+        />
 
-      <p v-if="error" style="color:red">{{ error }}</p>
+        <button
+          class="px-4 py-2 bg-blue-600 text-white rounded"
+          @click="proceedToPasscode"
+        >
+          Continue
+        </button>
+      </div>
 
-      <button class="btn">Continue</button>
-    </form>
+      <!-- Step 2: passcode -->
+      <div v-else class="space-y-4">
+        <p>Enter the passcode for <b>{{ course.name }}</b>:</p>
 
-    <form v-else @submit.prevent="validatePasscode">
-      <p>Welcome, {{ name }}. Enter the passcode to complete your check-in.</p>
+        <input
+          v-model="passcode"
+          placeholder="Passcode"
+          class="border px-3 py-2 w-full rounded"
+        />
 
-      <label>Passcode:</label>
-      <input v-model="passcode" required />
+        <button
+          class="px-4 py-2 bg-green-600 text-white rounded"
+          @click="attemptCheckIn"
+        >
+          Check In
+        </button>
+      </div>
 
-      <p v-if="error" style="color:red">{{ error }}</p>
-
-      <button class="btn">Check In</button>
-    </form>
+    </div>
   </div>
 </template>
-
-<style scoped>
-form {
-  display: flex;
-  flex-direction: column;
-  max-width: 300px;
-  gap: 0.5rem;
-}
-.btn {
-  background: #007bff;
-  color: white;
-  padding: 0.5rem 0.75rem;
-  border: none;
-  border-radius: 6px;
-}
-</style>
