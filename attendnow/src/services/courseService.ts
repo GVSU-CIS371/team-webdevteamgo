@@ -219,6 +219,29 @@ export async function updateCourse(
 }
 
 /**
+ * Add course information (name, code, semester, students)
+ */
+export async function addCourse(
+  course: {
+    instructorId: string;
+    name: string;
+    code: string;
+    semester: string;
+    studentsList: Student[];
+  }
+) {
+  try {
+    const docRef = await addDoc(collection(db, "courses"), course);
+    console.log(`[courses] Added new course with ID: ${docRef.id}`, course);
+    return docRef.id;
+  } catch (error) {
+    console.error("[courses] Error adding course:", error);
+    throw error;
+  }
+}
+
+
+/**
  * Delete a course from Firestore
  * @param courseId - The ID of the course to delete
  */
