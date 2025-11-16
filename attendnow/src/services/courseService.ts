@@ -219,7 +219,7 @@ export async function updateCourse(
 }
 
 /**
- * Add course information (name, code, semester, students)
+ * Add course information (instructorId, name, code, semester, students)
  */
 export async function addCourse(
   course: {
