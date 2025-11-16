@@ -336,7 +336,7 @@ async function onSaveStudents(students: Student[]) {
   }
 
   .btn-edit {
-    background: #374151;
+    background: #436190;
     color: #d1d5db;
   }
 
