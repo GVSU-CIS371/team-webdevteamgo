@@ -22,7 +22,7 @@ function goToCheckIn(course: Course) {
   if (!course.activeCheckIn) return;
 
   // Using embedded activeCheckIn for routing
-  router.push(`/checkin/${course.activeCheckInRef.id}`);
+  router.push(`/checkins/${course.activeCheckInRef.id}`);
 }
 </script>
 
@@ -185,7 +185,7 @@ function goToCheckIn(course: Course) {
 }
 
 .inactive {
-  background: #f5f5f5;
+  background: #403b3b7e;
   padding: 0.5rem;
   border-radius: 4px;
 }
