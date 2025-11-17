@@ -6,7 +6,7 @@ const routes: RouteRecordRaw[] = [
   { path: "/snapshot", name: "snapshot", component: () => import("./views/SnapshotView.vue") },
   { path: "/course/:courseId/attendance", name: "attendance-history", component: () => import("./views/AttendanceHistoryView.vue") },
   { path: "/studentCourseList", name: "studentCourseList", component: () => import("./views/StudentCourseList.vue") },
-  { path: "/checkin/:courseId/", name: "studentCheckInForm", component: () => import("./views/StudentCheckInForm.vue") },
+  { path: "/checkin/:checkinId", name: "studentCheckInForm", component: () => import("./views/StudentCheckInForm.vue") },
 ];
 
 export const router = createRouter({

@@ -8,8 +8,7 @@ import {
   arrayUnion,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
-
-import type { Course, Student } from "../types";
+import type { ActiveCheckIn, Course, Student } from "@/types";
 
 const route = useRoute();
 const router = useRouter();
@@ -24,16 +23,25 @@ const passcode = ref("");
 const loading = ref(true);
 const error = ref("");
 
-const courseId = route.params.courseId as string;
+const checkinId = route.params.checkinId as string;
+const checkIn = ref<ActiveCheckIn | null>(null);
 
 onMounted(async () => {
-  const snap = await getDoc(doc(db, "courses", courseId));
-  if (!snap.exists()) {
-    error.value = "Course not found.";
-    return;
+  try {
+    const snap = await getDoc(doc(db, "checkins", checkinId));
+
+    if (!snap.exists()) {
+      error.value = "Check-in not found.";
+      return;
+    }
+
+    // You now have the check-in document
+    checkIn.value = snap.data() as ActiveCheckIn;
+  } catch (e) {
+    error.value = "Failed to load check-in.";
+  } finally {
+    loading.value = false;
   }
-  course.value = snap.data() as Course;
-  loading.value = false;
 });
 
 function proceedToPasscode() {
@@ -41,6 +49,7 @@ function proceedToPasscode() {
     error.value = "Please enter both name and email.";
     return;
   }
+
   step.value = "passcode";
 }
 
@@ -61,11 +70,13 @@ async function attemptCheckIn() {
     email: studentEmail.value.trim(),
   };
 
+  // 1. Add student to the course student list
   const courseRef = doc(db, "courses", course.value.id);
   await updateDoc(courseRef, {
     studentsList: arrayUnion(student),
   });
 
+  // 2. Add email to the checkin document's studentEmails
   const checkinId = course.value.activeCheckIn.id;
   const checkinRef = doc(db, "checkins", checkinId);
 
@@ -84,9 +95,9 @@ async function attemptCheckIn() {
     <div v-if="loading">Loading...</div>
     <p v-if="error" class="text-red-600 mb-4">{{ error }}</p>
 
-    <div v-if="course">
+    <div v-if="checkIn">
 
-      
+      <!-- Step 1: name/email -->
       <div v-if="step === 'info'" class="space-y-4">
         <input
           v-model="studentName"
