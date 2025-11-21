@@ -156,7 +156,7 @@ async function onSaveStudents(students: Student[]) {
       <div v-if="c.activeCheckIn" class="active">
         <p><strong>✅ Active Check-In</strong></p>
         <p>Passcode: <code class="pswd">{{ c.activeCheckIn.passcode }}</code></p>
-        <p>Ends: {{ c.activeCheckIn.expiresAt.toLocaleTimeString() }}</p>
+        <p>Ends: {{ c.activeCheckIn.expiresAt.toDate() }}</p>
         <button @click="onEnd(c.id)" class="btn btn-danger">End check-in</button>
       </div>
       <div v-else class="inactive">
@@ -336,7 +336,7 @@ async function onSaveStudents(students: Student[]) {
   }
 
   .btn-edit {
-    background: #436190;
+    background: #374151;
     color: #d1d5db;
   }
 

@@ -1,10 +1,12 @@
+import type { Timestamp } from "firebase/firestore/lite";
+
 export type ActiveCheckIn =
   | null
   | {
       id: string;
       passcode: string;
-      expiresAt: Date;
-      startedAt: Date;
+      expiresAt: Timestamp;
+      startedAt: Timestamp;
       qrUrl?: string;
     };
 
@@ -13,9 +15,9 @@ export type CheckIn = {
   courseId: string;
   instructorId?: string;
   passcode: string;
-  startedAt: Date;
-  expiresAt: Date;
-  endedAt: Date | null;
+  startedAt: Timestamp; // firestore stores these as timestamps
+  expiresAt:  Timestamp;
+  endedAt: Timestamp | null;
   studentEmails: string[];
 };
 

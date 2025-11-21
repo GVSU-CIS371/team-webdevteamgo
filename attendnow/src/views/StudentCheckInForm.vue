@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import {
   doc,
   getDoc,
@@ -11,10 +11,9 @@ import { db } from "../lib/firebase";
 import type { CheckIn, Course, Student } from "@/types";
 
 const route = useRoute();
-const router = useRouter();
 
 const course = ref<Course | null>(null);
-const step = ref<"info" | "passcode">("info");
+const step = ref<"info" | "passcode" | "completed">("info");
 
 const studentName = ref("");
 const studentEmail = ref("");
@@ -36,7 +35,7 @@ onMounted(async () => {
     }
 
     checkIn.value = snap.data() as CheckIn;
-
+    
     const courseSnap = await getDoc(doc(db, "courses", checkIn.value?.courseId));
     if (courseSnap.exists()) {
       course.value = courseSnap.data() as Course;
@@ -86,270 +85,198 @@ async function attemptCheckIn() {
     email: studentEmail.value.trim(),
   };
 
-  // 2. Add email to the checkin document's studentEmails
   const checkinRef = doc(db, "checkins", checkinId);
+  const snap = await getDoc(checkinRef);
+
+  if (!snap.exists()) {
+    throw new Error("Check-in does not exist.");
+  }
+
+  // get array of existing emails
+  const data = snap.data();
+  const existingEmails = data.studentEmails || [];
+
+  // If already checked in → return or show an error
+  if (existingEmails.includes(student.email)) {
+    error.value = "You are already checked in.";
+    return;
+  }
   
+  // Add email to the checkin document's studentEmails
   await updateDoc(checkinRef, {
     studentEmails: arrayUnion(student.email),
   });
+  step.value = "completed";
 }
 </script>
 
 <template>
-  <div class="p-6" align="center">
-    <h1 class="text-xl font-bold mb-4">Check-In for {{ course?.name }}</h1>
+  <div class="p-6 page-container" align="center">
+    <h1 class="form-title">Check-In for {{ course?.name }}</h1>
 
     <div v-if="loading">Loading...</div>
-    <p v-if="error" class="text-red-600 mb-4">{{ error }}</p>
-
+    
+  </div>
+  <div class="page-container" align="center">
     <div v-if="checkIn">
 
       <!-- Step 1: name/email -->
-      <div v-if="step === 'info'" class="course space-y-4">
+      <div v-if="step === 'info'" class="course-card space-y-4">
+        <p v-if="error" class="error-text mb-4">{{ error }}</p>
         <input
           v-model="studentName"
           placeholder="Your Name"
-          class="border px-3 py-2 w-full rounded"
+          class="form-input"
         />
         <input
           v-model="studentEmail"
           placeholder="Your Email"
-          class="border px-3 py-2 w-full rounded"
+          class="form-input"
         />
 
         <button
-          class="px-4 py-2 bg-blue-600 text-white rounded"
+          class="form-button blue-button"
           @click="proceedToPasscode"
         >
           Continue
         </button>
-        <p>Expires in {{ checkIn?.expiresAt }}</p>
+
+        <p class="info-text">
+          Expires at: {{ checkIn?.expiresAt.toDate().toLocaleString() }}
+        </p>
       </div>
 
       <!-- Step 2: passcode -->
-      <div v-else-if="step === 'passcode'" class="space-y-4">
-        <p>Enter the passcode for <b>{{ course?.name }}</b>:</p>
+      <div v-else-if="step === 'passcode'" class="course-card space-y-4">
+        <p v-if="error" class="error-text mb-4">{{ error }}</p>
+
+        <p class="info-text">
+          Enter the passcode for <b>{{ course?.name }}</b>:
+        </p>
 
         <input
           v-model="passcode"
           placeholder="Passcode"
-          class="border px-3 py-2 w-full rounded"
+          class="form-input"
         />
 
         <button
-          class="px-4 py-2 bg-green-600 text-white rounded"
+          class="form-button green-button"
           @click="attemptCheckIn"
         >
           Check In
         </button>
       </div>
 
+      <!-- Completed -->
+      <div v-else-if="step === 'completed'" class="course-card space-y-4">
+        <p class="info-text">You have checked in. You may now leave the page.</p>
+      </div>
+
     </div>
   </div>
+  
 </template>
 
 
+
 <style scoped>
-.courses {
-  max-width: 700px;
-  width: 40%;
-  margin: 2rem auto;
-  padding: 1rem;
-  font-family: sans-serif;
-  color: #222;
-  
-}
-
-.course {
-  border: 1px solid #ccc;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border-radius: 6px;
-  background: #fff;
-}
-
-.course-header {
+/* Layout */
+.page-container {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-  font-weight: 700;
-}
-
-.course-info {
-  flex: 1;
-}
-
-.course-info h3 {
-  margin: 0 0 0.5rem 0;
-}
-
-.course-info p {
-  margin: 0;
-  color: #666;
-  padding-bottom: 1rem;
-}
-
-.course-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-  width: 100%;
-}
-
-.course-actions .btn {
-  width: 100%;
   justify-content: center;
+  padding: 2rem;
+  margin-bottom: 2rem;
 }
 
-/* === Unified Button System === */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.5rem;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.15);
+/* Title */
+.form-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  align-content: top;
+  margin-right: 2rem;
+  color: #ffffff;
 }
 
-/* Button variants */
-.btn-edit {
-  background: #f3f4f6;
-  color: #374151;
+/* Card container */
+.course-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: rgba(250, 250, 255, 0.9);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
 }
-.btn-edit:hover {
-  background: #e5e7eb;
+
+/* Inputs */
+.form-input {
+  width: 90%;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
   color: #111827;
+  transition: all 0.2s ease;
 }
 
-.btn-students {
-  background: #eef2ff;
-  color: #3730a3;
-}
-.btn-students:hover {
-  background: #e0e7ff;
-  color: #312e81;
+.form-input::placeholder {
+  color: #9ca3af;
 }
 
-.btn-attendance {
-  background: #f0fdf4;
-  color: #15803d;
-}
-.btn-attendance:hover {
-  background: #dcfce7;
-  color: #166534;
+.form-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+  outline: none;
 }
 
-.btn-delete {
-  background: #fee2e2;
+/* Buttons */
+.form-button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background 0.2s ease, transform 0.15s ease;
+  color: white;
+}
+
+.form-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.form-button:active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+
+/* Button colors */
+.blue-button {
+  background-color: #2563eb;
+}
+
+.blue-button:hover {
+  background-color: #1e40af;
+}
+
+.green-button {
+  background-color: #059669;
+}
+
+.green-button:hover {
+  background-color: #047857;
+}
+
+/* Text styles */
+.error-text {
   color: #dc2626;
 }
-.btn-delete:hover {
-  background: #fecaca;
-  color: #b91c1c;
+
+.info-text {
+  color: #374151;
 }
 
-.btn-primary {
-  background: #007bff;
-  color: white;
-}
-.btn-primary:hover {
-  background: #0056b3;
-}
-
-.btn-danger {
-  background: #dc3545;
-  color: white;
-}
-.btn-danger:hover {
-  background: #c82333;
-}
-
-/* Active & inactive states */
-.active {
-  background: #e6ffed;
-  padding: 0.5rem;
-  border-radius: 4px;
-}
-
-.inactive {
-  background: #403b3b7e;
-  padding: 0.5rem;
-  border-radius: 4px;
-}
-
-.pswd {
-  font-size: 1rem;
-  font-weight: bold;
-}
-
-/* Light theme adjustments */
-@media (prefers-color-scheme: light) {
-  .courses {
-    color: #e5e7eb;
-  }
-
-  .course {
-    background: #1f2937;
-    border-color: #374151;
-  }
-
-  .course-info p {
-    color: #9ca3af;
-  }
-
-  .btn {
-    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
-  }
-
-  .btn-edit {
-    background: #374151;
-    color: #d1d5db;
-  }
-
-  .btn-edit:hover {
-    background: #4b5563;
-    color: #f9fafb;
-  }
-
-  .btn-delete {
-    background: #7f1d1d;
-    color: #fca5a5;
-  }
-
-  .btn-delete:hover {
-    background: #991b1b;
-    color: #fecaca;
-  }
-
-  .btn-students {
-    background: #312e81;
-    color: #c7d2fe;
-  }
-
-  .btn-students:hover {
-    background: #4338ca;
-    color: #e0e7ff;
-  }
-
-  .btn-attendance {
-    background: #14532d;
-    color: #86efac;
-  }
-
-  .btn-attendance:hover {
-    background: #166534;
-    color: #bbf7d0;
-  }
-
-  .inactive {
-    background: #374151;
-  }
-}
 
 </style>
