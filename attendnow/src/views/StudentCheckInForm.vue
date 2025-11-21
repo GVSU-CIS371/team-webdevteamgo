@@ -34,9 +34,9 @@ onMounted(async () => {
       return;
     }
     checkIn.value = {
-  ...snap.data(),
-  expiresAt: snap.data().expiresAt.toDate(), // Convert Timestamp → Date
-} as CheckIn;
+      ...snap.data(),
+      expiresAt: snap.data().expiresAt.toDate(), // Convert Timestamp → Date
+    } as CheckIn;
     
     const courseSnap = await getDoc(doc(db, "courses", checkIn.value?.courseId));
     if (courseSnap.exists()) {
