@@ -33,8 +33,10 @@ onMounted(async () => {
       error.value = "Check-in not found.";
       return;
     }
-
-    checkIn.value = snap.data() as CheckIn;
+    checkIn.value = {
+  ...snap.data(),
+  expiresAt: snap.data().expiresAt.toDate(), // Convert Timestamp → Date
+} as CheckIn;
     
     const courseSnap = await getDoc(doc(db, "courses", checkIn.value?.courseId));
     if (courseSnap.exists()) {
@@ -142,7 +144,7 @@ async function attemptCheckIn() {
         </button>
 
         <p class="info-text">
-          Expires at: {{ checkIn?.expiresAt.toDate().toLocaleString() }}
+          Expires at: {{ checkIn?.expiresAt.toLocaleString() }}
         </p>
       </div>
 
