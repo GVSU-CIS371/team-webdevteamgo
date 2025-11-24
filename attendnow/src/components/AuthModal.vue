@@ -79,8 +79,9 @@ async function submit() {
 .form { padding: 1rem; display:flex; flex-direction:column; gap:.75rem; }
 label { display:flex; flex-direction:column; gap:.25rem; color:#e5e7eb; }
 input { padding:.55rem .65rem; border-radius:8px; background:#0b0d10; border:1px solid rgba(255,255,255,0.12); color:#e5e7eb; }
-.primary { margin-top:.25rem; padding:.6rem .8rem; border:none; border-radius:8px; background:#8ab4ff; color:#0b0d10; font-weight:600; cursor:pointer; }
-.primary:hover { filter:brightness(1.05); }
-.primary:disabled { opacity: .7; cursor: not-allowed; }
+input:focus { outline: none; border-color: #0ECBF0; box-shadow: 0 0 0 2px rgba(14, 203, 240, 0.2); }
+.primary { margin-top:.25rem; padding:.6rem .8rem; border:none; border-radius:8px; background:#0ECBF0; color:#111827; font-weight:600; cursor:pointer; transition: all 0.2s; }
+.primary:hover { background: #0ab8db; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(14, 203, 240, 0.3); }
+.primary:disabled { opacity: .7; cursor: not-allowed; transform: none; }
 .error { color: #fda4af; margin: .25rem 0 0; font-size: .9rem; }
 </style>

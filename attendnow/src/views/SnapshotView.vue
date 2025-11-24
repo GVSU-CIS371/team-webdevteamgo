@@ -4,7 +4,7 @@ import { collection, onSnapshot, type Unsubscribe } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import type { Course, Student } from "../types";
 
-// Local helper to normalize students list from various legacy shapes
+
 function toStudentsList(a: any): Student[] {
   if (!a) return [];
   if (Array.isArray(a)) {
@@ -124,39 +124,44 @@ function avgStudentsPerCourse(s: DeptSummary): string {
 
 <style scoped>
 .snapshot { max-width: 1000px; width: 100%; margin: 1rem auto; padding: 0 1rem; }
-.title { margin: 0 0 1rem; color: #e5e7eb; font-weight: 600; }
+.title { margin: 0 0 1rem; color: #e5e7eb; font-weight: 600; font-size: 1.5rem; }
 .empty { color: #9ca3af; padding: 1rem; }
 
 .grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 .card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 1rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  background: #0ECBF0; /* GVSU Link Blue */
+  border: 2px solid #0ab8db;
+  border-radius: 8px;
+  padding: 0.75rem;
+  box-shadow: 0 3px 6px rgba(14, 203, 240, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+  width: 200px;
+  flex-shrink: 0;
 }
 
-.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
-.dept { font-size: 1.1rem; font-weight: 700; color: #111827; letter-spacing: 0.5px; }
-
-.metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
-.metric { background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 8px; padding: 0.5rem; text-align: center; }
-.label { font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem; }
-.value { font-size: 1rem; font-weight: 600; color: #111827; }
-.placeholder { color: #9ca3af; }
-
-@media (prefers-color-scheme: dark) {
-  .title { color: #e5e7eb; }
-  .card { background: #1f2937; border-color: #374151; box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
-  .dept { color: #e5e7eb; }
-  .metric { background: #111827; border-color: #1f2937; }
-  .label { color: #9ca3af; }
-  .value { color: #f3f4f6; }
-  .empty { color: #9ca3af; }
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 10px rgba(14, 203, 240, 0.4);
 }
+
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem; }
+.dept { font-size: 0.95rem; font-weight: 700; color: #111827; letter-spacing: 0.5px; }
+
+.metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.35rem; }
+.metric { 
+  background: rgba(255, 255, 255, 0.25); 
+  border: 1px solid rgba(255, 255, 255, 0.3); 
+  border-radius: 6px; 
+  padding: 0.4rem 0.25rem; 
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+.label { font-size: 0.65rem; color: #111827; margin-bottom: 0.15rem; font-weight: 500; }
+.value { font-size: 0.85rem; font-weight: 700; color: #111827; }
+.placeholder { color: #374151; }
 </style>

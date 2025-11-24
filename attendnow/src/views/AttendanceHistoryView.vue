@@ -243,19 +243,21 @@ function getStudentNameByEmail(email: string): string {
 }
 
 .back-btn {
-  background: #374151;
-  color: #d1d5db;
-  border: none;
+  background: rgba(0, 50, 160, 0.7); /* GVSU Blue */
+  color: #fff;
+  border: 1px solid rgba(0, 50, 160, 0.9);
   padding: 0.5rem 1rem;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background 0.2s;
+  transition: all 0.2s;
   margin-bottom: 1rem;
+  font-weight: 500;
 }
 
 .back-btn:hover {
-  background: #4b5563;
+  background: rgba(0, 50, 160, 0.9);
+  transform: translateX(-2px);
 }
 
 .course-info-header h1 {
@@ -276,8 +278,8 @@ function getStudentNameByEmail(email: string): string {
 }
 
 .spinner {
-  border: 4px solid #374151;
-  border-top: 4px solid #60a5fa;
+  border: 4px solid rgba(19, 21, 92, 0.3);
+  border-top: 4px solid #0ECBF0; /* GVSU Link Blue */
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -298,13 +300,14 @@ function getStudentNameByEmail(email: string): string {
 .error-message {
   text-align: center;
   padding: 2rem;
-  background: #7f1d1d;
+  background: rgba(127, 29, 29, 0.8);
   border-radius: 8px;
   color: #fecaca;
+  border: 1px solid rgba(127, 29, 29, 1);
 }
 
 .btn-primary {
-  background: #3b82f6;
+  background: #0032A0; /* GVSU Blue */
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -312,10 +315,12 @@ function getStudentNameByEmail(email: string): string {
   cursor: pointer;
   font-size: 1rem;
   margin-top: 1rem;
+  font-weight: 600;
+  transition: background 0.2s;
 }
 
 .btn-primary:hover {
-  background: #2563eb;
+  background: #0040c4;
 }
 
 /* Content Sections */
@@ -326,17 +331,17 @@ function getStudentNameByEmail(email: string): string {
 }
 
 section {
-  background: #1f2937;
+  background: rgba(19, 21, 92, 0.5); /* GVSU Midnight - lighter */
   padding: 1.5rem;
   border-radius: 8px;
-  border: 1px solid #374151;
+  border: 1px solid rgba(0, 50, 160, 0.3); /* GVSU Blue border */
 }
 
 section h2 {
   margin: 0 0 1rem 0;
   font-size: 1.5rem;
   color: #f9fafb;
-  border-bottom: 2px solid #374151;
+  border-bottom: 2px solid rgba(14, 203, 240, 0.3); /* Link Blue accent */
   padding-bottom: 0.5rem;
 }
 
@@ -359,13 +364,14 @@ section h2 {
 .summary-table {
   width: 100%;
   border-collapse: collapse;
-  background: #111827;
+  background: rgba(19, 21, 92, 0.7); /* Darker Midnight for table */
   border-radius: 6px;
   overflow: hidden;
+  border: 1px solid rgba(0, 50, 160, 0.3);
 }
 
 .summary-table thead {
-  background: #374151;
+  background: rgba(0, 50, 160, 0.6); /* GVSU Blue header */
 }
 
 .summary-table th {
@@ -377,15 +383,15 @@ section h2 {
 
 .summary-table td {
   padding: 0.75rem 1rem;
-  border-top: 1px solid #374151;
+  border-top: 1px solid rgba(0, 50, 160, 0.2);
 }
 
 .summary-table tr.low-attendance {
-  background: #7f1d1d;
+  background: rgba(127, 29, 29, 0.5);
 }
 
 .summary-table tr:hover {
-  background: #1f2937;
+  background: rgba(0, 50, 160, 0.2); /* GVSU Blue hover */
 }
 
 .summary-table .email {
@@ -401,13 +407,15 @@ section h2 {
   font-weight: 600;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  background: #14532d;
-  color: #86efac;
+  background: rgba(61, 209, 204, 0.2); /* Big Lake tint */
+  color: #3DD1CC; /* Big Lake */
+  border: 1px solid rgba(61, 209, 204, 0.4);
 }
 
 .percentage.low {
-  background: #7f1d1d;
+  background: rgba(127, 29, 29, 0.3);
   color: #fca5a5;
+  border: 1px solid rgba(127, 29, 29, 0.6);
 }
 
 .status-badge {
@@ -419,13 +427,15 @@ section h2 {
 }
 
 .status-badge.good {
-  background: #14532d;
-  color: #86efac;
+  background: rgba(61, 209, 204, 0.2); /* Big Lake */
+  color: #3DD1CC;
+  border: 1px solid rgba(61, 209, 204, 0.4);
 }
 
 .status-badge.warning {
-  background: #7f1d1d;
+  background: rgba(127, 29, 29, 0.3);
   color: #fca5a5;
+  border: 1px solid rgba(127, 29, 29, 0.6);
 }
 
 /* Records List */
@@ -436,10 +446,16 @@ section h2 {
 }
 
 .record-card {
-  background: #111827;
-  border: 1px solid #374151;
+  background: rgba(19, 21, 92, 0.6); /* Midnight */
+  border: 1px solid rgba(0, 50, 160, 0.4); /* GVSU Blue border */
   border-radius: 8px;
   padding: 1rem;
+  transition: all 0.2s;
+}
+
+.record-card:hover {
+  border-color: rgba(14, 203, 240, 0.5); /* Link Blue on hover */
+  box-shadow: 0 2px 8px rgba(0, 50, 160, 0.2);
 }
 
 .record-header {
@@ -456,18 +472,19 @@ section h2 {
 }
 
 .passcode-badge {
-  background: #312e81;
-  color: #c7d2fe;
+  background: rgba(14, 203, 240, 0.2); /* Link Blue */
+  color: #0ECBF0;
   padding: 0.25rem 0.75rem;
   border-radius: 6px;
   font-size: 0.9rem;
   font-weight: 600;
+  border: 1px solid rgba(14, 203, 240, 0.4);
 }
 
 .record-details {
   margin-bottom: 0.75rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid #374151;
+  border-bottom: 1px solid rgba(0, 50, 160, 0.3);
 }
 
 .record-time {
@@ -478,7 +495,7 @@ section h2 {
 
 .separator {
   margin: 0 0.5rem;
-  color: #4b5563;
+  color: #6b7280;
 }
 
 .attendance-count {
@@ -503,18 +520,19 @@ section h2 {
 
 .students-list li {
   padding: 0.5rem;
-  background: #1f2937;
+  background: rgba(0, 50, 160, 0.2); /* GVSU Blue tint */
   border-radius: 4px;
   font-size: 0.9rem;
+  border: 1px solid rgba(0, 50, 160, 0.3);
 }
 
 .student-email {
-  color: #6b7280;
+  color: #9ca3af;
   font-size: 0.85rem;
 }
 
 .no-students {
-  color: #6b7280;
+  color: #9ca3af;
   font-style: italic;
   padding: 0.5rem 0;
 }
