@@ -9,7 +9,6 @@ import { useAuth } from "../lib/useAuth";
 
 const router = useRouter();
 
-// Use the currently authenticated instructor UID
 const { user, loading: authLoading } = useAuth();
 const instructorId = computed(() => user.value?.uid || "");
 
@@ -111,8 +110,8 @@ async function onSaveStudents(students: Student[]) {
 
 <template>
   <div class="courses">
-    <div v-if="authLoading">Loading your courses…</div>
-    <div v-else-if="!instructorId" style="color: white;">Please sign in to view your courses.</div>
+    <div v-if="authLoading" class="loading">Loading your courses…</div>
+    <div v-else-if="!instructorId" class="signin-prompt">Please sign in to view your courses.</div>
     <div v-for="c in courses" :key="c.id" class="course">
       <div class="course-info">
         <h3>{{ c.name }} ({{ c.code }}) — {{ c.semester }}</h3>
@@ -181,20 +180,32 @@ async function onSaveStudents(students: Student[]) {
 
 <style scoped>
 .courses {
-  max-width: 700px;
-  width: 40%;
-  margin: 2rem auto;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
   padding: 1rem;
-  font-family: sans-serif;
-  color: #222;
+}
+
+.loading,
+.signin-prompt {
+  color: #e5e7eb;
+  text-align: center;
+  padding: 2rem;
 }
 
 .course {
-  border: 1px solid #ccc;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border-radius: 6px;
-  background: #fff;
+  border: 1px solid rgba(0, 50, 160, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.course:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .course-header {
@@ -210,12 +221,15 @@ async function onSaveStudents(students: Student[]) {
 
 .course-info h3 {
   margin: 0 0 0.5rem 0;
+  color: #111827;
+  font-size: 1.25rem;
 }
 
 .course-info p {
   margin: 0;
-  color: #666;
+  color: #6b7280;
   padding-bottom: 1rem;
+  font-size: 0.95rem;
 }
 
 .course-actions {
@@ -234,21 +248,27 @@ async function onSaveStudents(students: Student[]) {
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.5rem;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.15);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Button variants */
 .btn-edit {
   background: #f3f4f6;
   color: #374151;
+  border: 1px solid #d1d5db;
 }
 .btn-edit:hover {
   background: #e5e7eb;
@@ -258,6 +278,7 @@ async function onSaveStudents(students: Student[]) {
 .btn-students {
   background: #eef2ff;
   color: #3730a3;
+  border: 1px solid #c7d2fe;
 }
 .btn-students:hover {
   background: #e0e7ff;
@@ -267,6 +288,7 @@ async function onSaveStudents(students: Student[]) {
 .btn-attendance {
   background: #f0fdf4;
   color: #15803d;
+  border: 1px solid #bbf7d0;
 }
 .btn-attendance:hover {
   background: #dcfce7;
@@ -276,6 +298,7 @@ async function onSaveStudents(students: Student[]) {
 .btn-delete {
   background: #fee2e2;
   color: #dc2626;
+  border: 1px solid #fecaca;
 }
 .btn-delete:hover {
   background: #fecaca;
@@ -283,100 +306,60 @@ async function onSaveStudents(students: Student[]) {
 }
 
 .btn-primary {
-  background: #007bff;
+  background: var(--gvsu-blue);
   color: white;
+  border: 1px solid var(--gvsu-blue);
 }
 .btn-primary:hover {
-  background: #0056b3;
+  background: #0040c4;
 }
 
 .btn-danger {
-  background: #dc3545;
+  background: #dc2626;
   color: white;
+  border: 1px solid #dc2626;
 }
 .btn-danger:hover {
-  background: #c82333;
+  background: #b91c1c;
 }
 
 /* Active & inactive states */
 .active {
-  background: #e6ffed;
-  padding: 0.5rem;
-  border-radius: 4px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.active p {
+  margin: 0.5rem 0;
+  color: #166534;
+}
+
+.active strong {
+  color: #15803d;
 }
 
 .inactive {
-  background: #f5f5f5;
-  padding: 0.5rem;
-  border-radius: 4px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.inactive p {
+  margin: 0 0 0.75rem 0;
+  color: #6b7280;
 }
 
 .pswd {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: bold;
-}
-
-/* Light theme adjustments */
-@media (prefers-color-scheme: light) {
-  .courses {
-    color: #e5e7eb;
-  }
-
-  .course {
-    background: #1f2937;
-    border-color: #374151;
-  }
-
-  .course-info p {
-    color: #9ca3af;
-  }
-
-  .btn {
-    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
-  }
-
-  .btn-edit {
-    background: #374151;
-    color: #d1d5db;
-  }
-
-  .btn-edit:hover {
-    background: #4b5563;
-    color: #f9fafb;
-  }
-
-  .btn-delete {
-    background: #7f1d1d;
-    color: #fca5a5;
-  }
-
-  .btn-delete:hover {
-    background: #991b1b;
-    color: #fecaca;
-  }
-
-  .btn-students {
-    background: #312e81;
-    color: #c7d2fe;
-  }
-
-  .btn-students:hover {
-    background: #4338ca;
-    color: #e0e7ff;
-  }
-
-  .btn-attendance {
-    background: #14532d;
-    color: #86efac;
-  }
-
-  .btn-attendance:hover {
-    background: #166534;
-    color: #bbf7d0;
-  }
-
-  .inactive {
-    background: #374151;
-  }
+  background: #dcfce7;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  color: #15803d;
 }
 </style>

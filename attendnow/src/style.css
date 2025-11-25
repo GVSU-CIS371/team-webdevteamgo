@@ -14,7 +14,6 @@
   --archway: #DEC197;
   
   color-scheme: dark;
-  background: var(--midnight);
   color: #e5e7eb;
 }
 
@@ -24,29 +23,23 @@ html, body, #app {
   padding: 0;
 }
 
+html {
+  background: linear-gradient(135deg, #13155C 0%, #0032A0 50%, #1e1b4b 100%);
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
 #app {
   max-width: none;
   margin: 0;
   padding: 0;
   text-align: initial;
-  position: relative;
-  z-index: 1;
-}
-
-
-body {
-  background-color: var(--midnight);
-  background-image:
-    linear-gradient(
-      to bottom,
-      rgba(19, 21, 92, 0) 0%,
-      rgba(19, 21, 92, 0.75) 70%,
-      rgba(19, 21, 92, 1) 100%
-    );
-
-  background-attachment: fixed;
-  background-size: auto;
-  background-position: center;
-
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  background: transparent;
 }

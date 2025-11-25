@@ -13,7 +13,6 @@ const checkIns = ref<CheckIn[]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
 
-// Student attendance summary
 interface StudentSummary {
   email: string;
   name: string;
@@ -23,7 +22,7 @@ interface StudentSummary {
   isLowAttendance: boolean;
 }
 
-const ATTENDANCE_THRESHOLD = 75; // Flag students below 75%
+const ATTENDANCE_THRESHOLD = 75;
 
 const studentSummary = computed<StudentSummary[]>(() => {
   if (!course.value) {
@@ -33,7 +32,6 @@ const studentSummary = computed<StudentSummary[]>(() => {
   const totalSessions = checkIns.value.length;
   const summaryMap = new Map<string, StudentSummary>();
 
-  // Initialize all students from the course
   course.value.studentsList.forEach((student) => {
     summaryMap.set(student.email.toLowerCase(), {
       email: student.email,
@@ -45,7 +43,6 @@ const studentSummary = computed<StudentSummary[]>(() => {
     });
   });
 
-  // Count attendance for each student
   checkIns.value.forEach((checkIn) => {
     checkIn.studentEmails.forEach((email) => {
       const normalizedEmail = email.toLowerCase();
@@ -56,14 +53,12 @@ const studentSummary = computed<StudentSummary[]>(() => {
     });
   });
 
-  // Calculate attendance rates and flag low attendance
   const summaries = Array.from(summaryMap.values()).map((summary) => {
     summary.attendanceRate = totalSessions > 0 ? (summary.attended / summary.total) * 100 : 0;
     summary.isLowAttendance = summary.attendanceRate < ATTENDANCE_THRESHOLD;
     return summary;
   });
 
-  // Sort by attendance rate (lowest first to highlight issues)
   return summaries.sort((a, b) => a.attendanceRate - b.attendanceRate);
 });
 
@@ -72,7 +67,6 @@ onMounted(async () => {
     loading.value = true;
     error.value = null;
 
-    // Fetch course data
     const fetchedCourse = await getCourse(courseId.value);
     if (!fetchedCourse) {
       error.value = "Course not found";
@@ -80,7 +74,6 @@ onMounted(async () => {
     }
     course.value = fetchedCourse;
 
-    // Fetch check-ins
     checkIns.value = await getCourseCheckIns(courseId.value);
   } catch (err) {
     console.error("Error loading attendance data:", err);
@@ -231,11 +224,11 @@ function getStudentNameByEmail(email: string): string {
 
 <style scoped>
 .attendance-history {
-  min-height: 100vh;
+  min-height: calc(100vh - 60px);
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
-  color: #e5e7eb;
+  background: transparent; /* Remove the gradient, let body show through */
 }
 
 .header {
@@ -243,21 +236,23 @@ function getStudentNameByEmail(email: string): string {
 }
 
 .back-btn {
-  background: rgba(0, 50, 160, 0.7); /* GVSU Blue */
+  background: var(--gvsu-blue);
   color: #fff;
-  border: 1px solid rgba(0, 50, 160, 0.9);
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  border: 1px solid var(--gvsu-blue);
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   transition: all 0.2s;
   margin-bottom: 1rem;
-  font-weight: 500;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .back-btn:hover {
-  background: rgba(0, 50, 160, 0.9);
+  background: #0040c4;
   transform: translateX(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
 .course-info-header h1 {
@@ -267,19 +262,21 @@ function getStudentNameByEmail(email: string): string {
 }
 
 .course-details {
-  color: #9ca3af;
+  color: #cbd5e1;
   margin: 0;
+  font-size: 1.1rem;
 }
 
 /* Loading */
 .loading {
   text-align: center;
   padding: 4rem 2rem;
+  color: #e5e7eb;
 }
 
 .spinner {
-  border: 4px solid rgba(19, 21, 92, 0.3);
-  border-top: 4px solid #0ECBF0; /* GVSU Link Blue */
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top: 4px solid var(--link-blue);
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -288,39 +285,39 @@ function getStudentNameByEmail(email: string): string {
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Error */
 .error-message {
   text-align: center;
   padding: 2rem;
-  background: rgba(127, 29, 29, 0.8);
-  border-radius: 8px;
-  color: #fecaca;
-  border: 1px solid rgba(127, 29, 29, 1);
+  background: white;
+  border-radius: 12px;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .btn-primary {
-  background: #0032A0; /* GVSU Blue */
+  background: var(--gvsu-blue);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
   margin-top: 1rem;
   font-weight: 600;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .btn-primary:hover {
   background: #0040c4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* Content Sections */
@@ -331,71 +328,85 @@ function getStudentNameByEmail(email: string): string {
 }
 
 section {
-  background: rgba(19, 21, 92, 0.5); /* GVSU Midnight - lighter */
+  background: white;
   padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 50, 160, 0.3); /* GVSU Blue border */
+  border-radius: 12px;
+  border: 1px solid rgba(0, 50, 160, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 section h2 {
-  margin: 0 0 1rem 0;
+  margin: 0 0 1.25rem 0;
   font-size: 1.5rem;
-  color: #f9fafb;
-  border-bottom: 2px solid rgba(14, 203, 240, 0.3); /* Link Blue accent */
-  padding-bottom: 0.5rem;
+  color: var(--gvsu-blue);
+  font-weight: 700;
+  border-bottom: 2px solid var(--gvsu-blue);
+  padding-bottom: 0.75rem;
 }
 
 .no-data {
   text-align: center;
   padding: 2rem;
-  color: #9ca3af;
+  color: #6b7280;
 }
 
 .no-data .hint {
   font-size: 0.9rem;
   margin-top: 0.5rem;
+  color: #9ca3af;
 }
 
 /* Summary Table */
 .table-container {
   overflow-x: auto;
+  border-radius: 8px;
 }
 
 .summary-table {
   width: 100%;
   border-collapse: collapse;
-  background: rgba(19, 21, 92, 0.7); /* Darker Midnight for table */
-  border-radius: 6px;
+  background: #f9fafb;
+  border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(0, 50, 160, 0.3);
+  border: 1px solid #e5e7eb;
 }
 
 .summary-table thead {
-  background: rgba(0, 50, 160, 0.6); /* GVSU Blue header */
+  background: var(--gvsu-blue);
 }
 
 .summary-table th {
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   text-align: left;
   font-weight: 600;
-  color: #f9fafb;
+  color: white;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .summary-table td {
-  padding: 0.75rem 1rem;
-  border-top: 1px solid rgba(0, 50, 160, 0.2);
+  padding: 0.85rem 1rem;
+  border-top: 1px solid #e5e7eb;
+  color: #374151;
 }
 
 .summary-table tr.low-attendance {
-  background: rgba(127, 29, 29, 0.5);
+  background: #fef2f2;
 }
 
-.summary-table tr:hover {
-  background: rgba(0, 50, 160, 0.2); /* GVSU Blue hover */
+.summary-table tbody tr:hover {
+  background: #f3f4f6;
 }
 
 .summary-table .email {
-  color: #9ca3af;
+  color: #6b7280;
   font-size: 0.9rem;
 }
 
@@ -405,37 +416,38 @@ section h2 {
 
 .percentage {
   font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  background: rgba(61, 209, 204, 0.2); /* Big Lake tint */
-  color: #3DD1CC; /* Big Lake */
-  border: 1px solid rgba(61, 209, 204, 0.4);
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  display: inline-block;
 }
 
 .percentage.low {
-  background: rgba(127, 29, 29, 0.3);
-  color: #fca5a5;
-  border: 1px solid rgba(127, 29, 29, 0.6);
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
 }
 
 .status-badge {
   display: inline-block;
-  padding: 0.25rem 0.75rem;
+  padding: 0.35rem 0.85rem;
   border-radius: 12px;
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .status-badge.good {
-  background: rgba(61, 209, 204, 0.2); /* Big Lake */
-  color: #3DD1CC;
-  border: 1px solid rgba(61, 209, 204, 0.4);
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
 }
 
 .status-badge.warning {
-  background: rgba(127, 29, 29, 0.3);
-  color: #fca5a5;
-  border: 1px solid rgba(127, 29, 29, 0.6);
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
 }
 
 /* Records List */
@@ -446,67 +458,80 @@ section h2 {
 }
 
 .record-card {
-  background: rgba(19, 21, 92, 0.6); /* Midnight */
-  border: 1px solid rgba(0, 50, 160, 0.4); /* GVSU Blue border */
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 1rem;
+  padding: 1.25rem;
   transition: all 0.2s;
 }
 
 .record-card:hover {
-  border-color: rgba(14, 203, 240, 0.5); /* Link Blue on hover */
-  box-shadow: 0 2px 8px rgba(0, 50, 160, 0.2);
+  border-color: var(--gvsu-blue);
+  box-shadow: 0 2px 8px rgba(0, 50, 160, 0.15);
 }
 
 .record-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .record-header h3 {
   margin: 0;
   font-size: 1.1rem;
-  color: #f9fafb;
+  color: #111827;
 }
 
 .passcode-badge {
-  background: rgba(14, 203, 240, 0.2); /* Link Blue */
-  color: #0ECBF0;
-  padding: 0.25rem 0.75rem;
+  background: #eef2ff;
+  color: #3730a3;
+  padding: 0.35rem 0.85rem;
   border-radius: 6px;
   font-size: 0.9rem;
-  font-weight: 600;
-  border: 1px solid rgba(14, 203, 240, 0.4);
+  font-weight: 700;
+  border: 1px solid #c7d2fe;
 }
 
 .record-details {
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(0, 50, 160, 0.3);
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .record-time {
-  color: #9ca3af;
+  color: #6b7280;
   margin: 0.25rem 0;
   font-size: 0.9rem;
+}
+
+.record-time strong {
+  color: #374151;
 }
 
 .separator {
   margin: 0 0.5rem;
-  color: #6b7280;
+  color: #9ca3af;
 }
 
 .attendance-count {
-  margin: 0.25rem 0;
-  color: #d1d5db;
+  margin: 0.5rem 0 0 0;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.attendance-count strong {
+  color: var(--gvsu-blue);
+  font-size: 1.1rem;
 }
 
 .students-list h4 {
-  margin: 0.5rem 0;
+  margin: 0 0 0.75rem 0;
   font-size: 0.95rem;
-  color: #d1d5db;
+  color: #374151;
+  font-weight: 600;
 }
 
 .students-list ul {
@@ -514,16 +539,17 @@ section h2 {
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 0.5rem;
 }
 
 .students-list li {
-  padding: 0.5rem;
-  background: rgba(0, 50, 160, 0.2); /* GVSU Blue tint */
-  border-radius: 4px;
+  padding: 0.65rem 0.85rem;
+  background: white;
+  border-radius: 6px;
   font-size: 0.9rem;
-  border: 1px solid rgba(0, 50, 160, 0.3);
+  border: 1px solid #e5e7eb;
+  color: #374151;
 }
 
 .student-email {
