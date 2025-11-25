@@ -181,8 +181,8 @@ async function onSaveStudents(students: Student[]) {
 
 <style scoped>
 .courses {
+  min-width: 250px;
   max-width: 700px;
-  width: 40%;
   margin: 2rem auto;
   padding: 1rem;
   font-family: sans-serif;
