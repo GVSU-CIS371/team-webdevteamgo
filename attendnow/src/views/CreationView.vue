@@ -3,6 +3,7 @@ import type { Student } from '@/types'
 import { addCourse } from "../services/courseService";
 import { useAuth } from '../lib/useAuth';
 import { ref, computed } from "vue"
+import router from '../router.ts';
 
 const { user } = useAuth();
 const instructorId = computed(() => user.value?.uid || "");
@@ -51,6 +52,7 @@ async function createCourse() {
     code.value = "";
     semester.value = "";
     stulist.value = []
+    router.replace("/dashboard")
   }
 }
 </script>
@@ -80,7 +82,7 @@ async function createCourse() {
           <span> Name: {{ s.name }}, Email: {{ s.email }}</span>
       </div>
     </section>
-  <button @click="createCourse" class="btn">Create Course</button>
+    <button @click="createCourse" class="btn">Create Course</button>
   </main>
   
 </template>
