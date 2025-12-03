@@ -22,8 +22,7 @@ const forwardOpen = (mode: 'signin' | 'signup') => emit('open-auth', mode)
       <RouterLink to="/" class="link">Home</RouterLink>
       <RouterLink v-if="user" to="/dashboard" class="link">Dashboard</RouterLink>
       <RouterLink v-if="user" to="/snapshot" class="link">Today's Snapshot</RouterLink>
-      <RouterLink v-if="user" to="/create" class="link">Create Course</RouterLink>
-      <!-- Removed Student Courses link -->
+      <!-- Removed Create Course link - accessible via Dashboard -->
     </div>
     <div class="right">
       <UserMenu @open-auth="forwardOpen" />
