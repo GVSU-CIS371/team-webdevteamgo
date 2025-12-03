@@ -4,7 +4,10 @@ import CourseList from "../components/CourseList.vue";
 
 <template>
   <main class="dashboard">
-    <h1 class="title">Course Dashboard</h1>
+    <div class="title">
+      <h1>Course Dashboard</h1>
+      <RouterLink to="/create" class="btn">Create Course →</RouterLink>
+    </div>
     <CourseList />
   </main>
 </template>
@@ -24,4 +27,6 @@ import CourseList from "../components/CourseList.vue";
   color: #e5e7eb; 
   font-weight: 600; 
 }
+.btn { display:inline-block; min-width: 125px; max-height: 27px; margin-top: 1rem; margin-bottom: 1rem; color:#0b0d10; background:#8ab4ff; text-decoration:none; padding:.5rem .8rem; border-radius:8px; font-weight:600; }
+.btn:hover { filter: brightness(1.05); }
 </style>
