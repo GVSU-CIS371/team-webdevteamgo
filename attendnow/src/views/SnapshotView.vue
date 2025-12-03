@@ -4,7 +4,6 @@ import { collection, onSnapshot, type Unsubscribe } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import type { Course, Student } from "../types";
 
-
 function toStudentsList(a: any): Student[] {
   if (!a) return [];
   if (Array.isArray(a)) {
@@ -52,7 +51,7 @@ onMounted(() => {
             : (data.students_list
                 ? toStudentsList(data.students_list)
                 : (Array.isArray(data.students) ? (data.students as string[]).map((e) => ({ email: String(e).toLowerCase(), name: '' })) : [])),
-          activeCheckIn: null, // not needed for snapshot; omit transformation for now
+          activeCheckIn: null,
         } as Course;
       });
     },
@@ -82,7 +81,6 @@ const summaries = computed(() => {
     current.totalStudents += Array.isArray(c.studentsList) ? c.studentsList.length : 0;
     map.set(dept, current);
   }
-  // sort by dept code for stable rendering
   return Array.from(map.values()).sort((a, b) => a.dept.localeCompare(b.dept));
 });
 
@@ -130,38 +128,78 @@ function avgStudentsPerCourse(s: DeptSummary): string {
 .grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .card {
-  background: #0ECBF0; /* GVSU Link Blue */
-  border: 2px solid #0ab8db;
-  border-radius: 8px;
-  padding: 0.75rem;
-  box-shadow: 0 3px 6px rgba(14, 203, 240, 0.3);
+  background: white;
+  border: 1px solid rgba(0, 50, 160, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
   transition: transform 0.2s, box-shadow 0.2s;
-  width: 200px;
+  width: 260px;
   flex-shrink: 0;
 }
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 10px rgba(14, 203, 240, 0.4);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem; }
-.dept { font-size: 0.95rem; font-weight: 700; color: #111827; letter-spacing: 0.5px; }
+.card-header { 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #0032A0;
+}
 
-.metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.35rem; }
+.dept { 
+  font-size: 1.25rem; 
+  font-weight: 700; 
+  color: #0032A0;
+  letter-spacing: 0.5px; 
+}
+
+.metrics { 
+  display: grid; 
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 0.75rem;
+}
+
 .metric { 
-  background: rgba(255, 255, 255, 0.25); 
-  border: 1px solid rgba(255, 255, 255, 0.3); 
-  border-radius: 6px; 
-  padding: 0.4rem 0.25rem; 
+  background: #f9fafb;
+  border: 1px solid #e5e7eb; 
+  border-radius: 8px; 
+  padding: 0.75rem 0.5rem;
   text-align: center;
-  backdrop-filter: blur(10px);
+  min-height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
-.label { font-size: 0.65rem; color: #111827; margin-bottom: 0.15rem; font-weight: 500; }
-.value { font-size: 0.85rem; font-weight: 700; color: #111827; }
-.placeholder { color: #374151; }
+
+.label { 
+  font-size: 0.65rem; 
+  color: #6b7280; 
+  margin-bottom: 0.35rem;
+  font-weight: 500; 
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+}
+
+.value { 
+  font-size: 1.1rem;
+  font-weight: 700; 
+  color: #111827; 
+  line-height: 1;
+}
+
+.placeholder { 
+  color: #9ca3af; 
+}
 </style>
