@@ -1,5 +1,18 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
+import { useAuth } from "../lib/useAuth";
+
+const { user } = useAuth();
+
+// Emit event to parent
+const emit = defineEmits<{ (e: 'open-auth', mode: 'signin' | 'signup'): void }>();
+
+function handleDashboardClick(event: Event) {
+  if (!user.value) {
+    event.preventDefault();
+    emit('open-auth', 'signup');
+  }
+}
 </script>
 
 <template>
@@ -7,7 +20,13 @@ import { RouterLink } from "vue-router";
     <section class="hero">
       <h1>AttendNow</h1>
       <p class="tag">Fast, reliable attendance and check-ins for courses.</p>
-      <RouterLink class="cta" to="/dashboard">Go to Dashboard →</RouterLink>
+      <RouterLink 
+        class="cta" 
+        to="/dashboard"
+        @click="handleDashboardClick"
+      >
+        Go to Dashboard →
+      </RouterLink>
     </section>
 
     <section class="card">
@@ -22,7 +41,7 @@ import { RouterLink } from "vue-router";
     <section class="card">
       <h2>How It Works</h2>
       <ol>
-        <li>Instructor opens the Dashboard and clicks “Start check-in”.</li>
+        <li>Instructor opens the Dashboard and clicks "Start check-in".</li>
         <li>A short passcode is generated and shown to students (QR coming soon).</li>
         <li>Students scan or enter the code to mark attendance.</li>
       </ol>

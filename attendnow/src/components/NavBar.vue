@@ -2,6 +2,9 @@
 import { RouterLink } from "vue-router";
 import logo from "../assets/logo.png";
 import UserMenu from "./UserMenu.vue";
+import { useAuth } from "../lib/useAuth";
+
+const { user } = useAuth();
 
 const emit = defineEmits<{ (e: 'open-auth', mode: 'signin' | 'signup'): void }>()
 const forwardOpen = (mode: 'signin' | 'signup') => emit('open-auth', mode)
@@ -17,9 +20,10 @@ const forwardOpen = (mode: 'signin' | 'signup') => emit('open-auth', mode)
     </div>
     <div class="center">
       <RouterLink to="/" class="link">Home</RouterLink>
-      <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>
-      <RouterLink to="/snapshot" class="link">Today's Snapshot</RouterLink>
-      <RouterLink to="/studentCourseList" class="link">Student Courses</RouterLink>
+      <RouterLink v-if="user" to="/dashboard" class="link">Dashboard</RouterLink>
+      <RouterLink v-if="user" to="/snapshot" class="link">Today's Snapshot</RouterLink>
+      <RouterLink v-if="user" to="/create" class="link">Create Course</RouterLink>
+      <!-- Removed Student Courses link -->
     </div>
     <div class="right">
       <UserMenu @open-auth="forwardOpen" />
