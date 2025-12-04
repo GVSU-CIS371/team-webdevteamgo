@@ -17,6 +17,7 @@ const showEditModal = ref(false);
 const editingCourse = ref<Course | null>(null);
 const showStudentsModal = ref(false);
 const studentsCourse = ref<Course | null>(null);
+const copyStatus = ref<Record<string, "idle" | "copied" | "error">>({});
 
 let off: (() => void) | null = null;
 
@@ -67,6 +68,15 @@ function onViewAttendance(course: Course) {
   router.push({ name: "attendance-history", params: { courseId: course.id } });
 }
 
+function checkInLinkFor(course: Course): string {
+  if (!course.activeCheckInRef?.id) return "";
+  const resolved = router.resolve({
+    name: "checkin",
+    params: { id: course.activeCheckInRef.id },
+  });
+  return new URL(resolved.href, window.location.origin).toString();
+}
+
 async function onSave(updatedCourse: Course) {
   try {
     await updateCourse(updatedCourse.id, {
@@ -104,6 +114,23 @@ async function onSaveStudents(students: Student[]) {
   } catch (error) {
     console.error("Error updating students:", error);
     alert("Failed to update students. Please try again.");
+  }
+}
+
+async function onCopyLink(course: Course) {
+  const link = checkInLinkFor(course);
+  if (!link) return;
+  try {
+    await navigator.clipboard.writeText(link);
+    copyStatus.value[course.id] = "copied";
+    setTimeout(() => {
+      if (copyStatus.value[course.id] === "copied") {
+        copyStatus.value[course.id] = "idle";
+      }
+    }, 2000);
+  } catch (error) {
+    copyStatus.value[course.id] = "error";
+    console.error("[courses] Failed to copy check-in link", error);
   }
 }
 </script>
@@ -157,6 +184,27 @@ async function onSaveStudents(students: Student[]) {
         <p>Passcode: <code class="pswd">{{ c.activeCheckIn.passcode }}</code></p>
         <p>Ends: {{ c.activeCheckIn.expiresAt.toLocaleTimeString() }}</p>
         <button @click="onEnd(c.id)" class="btn btn-danger">End check-in</button>
+        <div class="share-row">
+          <div class="share-text">
+            <p class="share-label">Check-in link</p>
+            <p class="share-url">{{ checkInLinkFor(c) }}</p>
+          </div>
+          <div class="share-actions">
+            <button @click="onCopyLink(c)" class="btn btn-copy">Copy link</button>
+            <span
+              v-if="copyStatus[c.id] === 'copied'"
+              class="copy-note success"
+            >
+              Copied
+            </span>
+            <span
+              v-else-if="copyStatus[c.id] === 'error'"
+              class="copy-note error"
+            >
+              Copy failed
+            </span>
+          </div>
+        </div>
       </div>
       <div v-else class="inactive">
         <p><em>No check-in running</em></p>
@@ -322,6 +370,15 @@ async function onSaveStudents(students: Student[]) {
 .btn-danger:hover {
   background: #b91c1c;
 }
+.btn-copy {
+  background: #eef2ff;
+  color: #1d4ed8;
+  border: 1px solid #c7d2fe;
+}
+.btn-copy:hover {
+  background: #e0e7ff;
+  color: #1e3a8a;
+}
 
 /* Active & inactive states */
 .active {
@@ -361,5 +418,55 @@ async function onSaveStudents(students: Student[]) {
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   color: #15803d;
+}
+
+.share-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border: 1px dashed #bbf7d0;
+  border-radius: 8px;
+  background: #ecfdf3;
+}
+
+.share-text {
+  flex: 1;
+  min-width: 240px;
+}
+
+.share-label {
+  margin: 0 0 0.25rem 0;
+  color: #065f46;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.share-url {
+  margin: 0;
+  color: #064e3b;
+  font-family: Menlo, Consolas, Monaco, "Courier New", monospace;
+  font-size: 0.9rem;
+  word-break: break-all;
+}
+
+.share-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.copy-note {
+  font-size: 0.85rem;
+}
+
+.copy-note.success {
+  color: #15803d;
+}
+
+.copy-note.error {
+  color: #b91c1c;
 }
 </style>

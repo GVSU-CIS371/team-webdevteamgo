@@ -22,7 +22,7 @@ const passcode = ref("");
 const loading = ref(true);
 const error = ref("");
 
-const checkinId = route.params.checkinId as string;
+const checkinId = route.params.id as string;
 const checkIn = ref<CheckIn | null>(null);
 
 onMounted(async () => {

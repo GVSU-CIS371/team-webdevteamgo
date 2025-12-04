@@ -22,7 +22,7 @@ function goToCheckIn(course: Course) {
   if (!course.activeCheckIn) return;
 
   // Using embedded activeCheckIn for routing
-  router.push(`/checkins/${course.activeCheckInRef.id}`);
+  router.push({ name: "checkin", params: { id: course.activeCheckInRef.id } });
 }
 </script>
 
