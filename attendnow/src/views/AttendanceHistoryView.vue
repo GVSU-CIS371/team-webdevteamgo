@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getCourse, getCourseCheckIns } from "../services/courseService";
-import type { Course, CheckIn, Student } from "../types";
+import type { Course, CheckIn } from "../types";
 
 const route = useRoute();
 const router = useRouter();

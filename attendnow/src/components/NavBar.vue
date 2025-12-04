@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
-import logo from "../assets/logo.png";
 import UserMenu from "./UserMenu.vue";
 import { useAuth } from "../lib/useAuth";
 
