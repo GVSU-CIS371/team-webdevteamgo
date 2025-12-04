@@ -52,10 +52,10 @@ function parseCSVToStudents(input: string): Student[] {
     let email = ''
     let name = ''
     if (parts.length === 1) {
-      email = parts[0]
+      email = parts[0] ?? ''
     } else if (parts.length >= 2) {
-      const p0 = parts[0]
-      const p1 = parts[1]
+      const p0 = parts[0] ?? ''
+      const p1 = parts[1] ?? ''
       if (p1.includes('@')) {
         name = p0
         email = p1
@@ -65,8 +65,8 @@ function parseCSVToStudents(input: string): Student[] {
       } else {
         const emailIdx = parts.findIndex((p) => p.includes('@'))
         if (emailIdx >= 0) {
-          email = parts[emailIdx]
-          name = parts[emailIdx === 0 ? 1 : 0] || ''
+          email = parts[emailIdx] ?? ''
+          name = parts[emailIdx === 0 ? 1 : 0] ?? ''
         }
       }
     }
