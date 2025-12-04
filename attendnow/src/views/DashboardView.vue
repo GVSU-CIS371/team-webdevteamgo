@@ -26,7 +26,10 @@ import CourseList from "../components/CourseList.vue";
   margin: 1rem 0; 
   color: #e5e7eb; 
   font-weight: 600; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
 }
-.btn { display:inline-block; min-width: 125px; max-height: 27px; margin-top: 1rem; margin-bottom: 1rem; color:#0b0d10; background:#8ab4ff; text-decoration:none; padding:.5rem .8rem; border-radius:8px; font-weight:600; }
+.btn { display:inline-block; min-width: 125px; max-height: 27px; margin-top: 1rem; margin-bottom: 1rem; color:#0b0d10; background:white; text-decoration:none; padding:.5rem .8rem; border-radius:8px; font-weight:600; }
 .btn:hover { filter: brightness(1.05); }
 </style>

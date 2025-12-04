@@ -9,63 +9,56 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: false }
   },
   { 
-    path: "/checkin/:id", // Make :id required (removed the ?)
+    path: "/checkin/:id",
     name: "checkin", 
     component: () => import("./views/StudentCheckInForm.vue"),
     meta: { requiresAuth: false }
   },
   { 
-    path: "/dashboard", 
+    path: "/dashboard",
     name: "dashboard", 
     component: () => import("./views/DashboardView.vue"),
     meta: { requiresAuth: true }
   },
   { 
-    path: "/create", 
+    path: "/create",
     name: "create", 
     component: () => import("./views/CreationView.vue"),
     meta: { requiresAuth: true }
   },
   { 
-    path: "/snapshot", 
+    path: "/snapshot",
     name: "snapshot", 
     component: () => import("./views/SnapshotView.vue"),
     meta: { requiresAuth: true }
   },
   { 
-    path: "/course/:courseId/attendance", 
-    name: "attendance-history", 
+    path: "/course/:courseId/attendance",
+    name: "attendance-history",
     component: () => import("./views/AttendanceHistoryView.vue"),
     meta: { requiresAuth: true }
   }
-  // Removed studentCourseList route
 ];
 
 export const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory('/team-webdevteamgo/'),
   routes,
-  scrollBehavior() {
-    return { top: 0 };
-  },
+  scrollBehavior: () => ({ top: 0 }),
 });
 
-// Navigation guard to protect routes
+// Navigation guard
 router.beforeEach((to, _from, next) => {
   const { user } = useAuth();
-  const requiresAuth = to.meta.requiresAuth;
-  
-  if (requiresAuth && !user.value) {
-    // User is not authenticated but route requires auth
-    // Redirect to home and trigger signup dialog
+
+  if (to.meta.requiresAuth && !user.value) {
     next({
       name: 'home',
       query: { 
-        redirect: to.fullPath, 
-        showAuth: 'signup' 
+        redirect: to.fullPath,
+        dashboardGate: '1'
       }
     });
   } else {
-    // User is authenticated or route doesn't require auth
     next();
   }
 });
